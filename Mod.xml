@@ -1,0 +1,11 @@
+<Header>
+  <Name>Floor Recruitment List</Name>
+  <Author>MistressNebula</Author>
+  <Description>Adds a new option to the main menu in dungeon, that allows players to view the current floor's spawn list and the full list of Pokémon in the explored portion of the current dungeon.
+It also shows which ones have already been catched.</Description>
+  <Namespace>recruit_list</Namespace>
+  <UUID>72AB260C-8C56-41A9-A439-71087CA12A96</UUID>
+  <Version>0.1</Version>
+  <ModType>Mod</ModType>
+  <Relationships />
+</Header>
