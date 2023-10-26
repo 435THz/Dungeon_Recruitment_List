@@ -56,11 +56,13 @@ function DebugTools:OnMenuButtonPressed()
     end
     DebugTools.MainMenu:SetupChoices()
 
-    -- Add recruit menu in dungeon only.
+
+    local index = 4
     if RogueEssence.GameManager.Instance.CurrentScene == RogueEssence.Dungeon.DungeonScene.Instance then
-        DebugTools.MainMenu.Choices:RemoveAt(5)
-        DebugTools.MainMenu.Choices:Insert(5, RogueEssence.Menu.MenuTextChoice("Others", function () _MENU:AddMenu(DebugTools:CustomDungeonOthersMenu(), false) end))
+        index = 5
     end
+    DebugTools.MainMenu.Choices:RemoveAt(index)
+    DebugTools.MainMenu.Choices:Insert(index, RogueEssence.Menu.MenuTextChoice("Others", function () _MENU:AddMenu(DebugTools:CustomDungeonOthersMenu(), false) end))
 
     DebugTools.MainMenu:SetupTitleAndSummary()
     DebugTools.MainMenu:InitMenu()
@@ -70,11 +72,7 @@ end
 function DebugTools:CustomDungeonOthersMenu()
     local menu = RogueEssence.Menu.OthersMenu()
     menu:SetupChoices();
-    if RogueEssence.GameManager.Instance.CurrentScene == RogueEssence.Dungeon.DungeonScene.Instance then
-        menu.Choices:Insert(1, RogueEssence.Menu.MenuTextChoice("Recruits", function () _MENU:AddMenu(RecruitmentListMenu:new(false).menu, false) end))
---    else
---TODO        menu.Choices:Insert(1, RogueEssence.Menu.MenuTextChoice("Recruits", function () _MENU:AddMenu(RecruitDungeonChoice:new(false).menu, false) end))
-    end
+    menu.Choices:Insert(1, RogueEssence.Menu.MenuTextChoice("Recruits", function () _MENU:AddMenu(RecruitMainChoice:new(menu.Bounds.Width+menu.Bounds.X+2).menu, true) end))
     menu:InitMenu();
     return menu
 end
@@ -192,10 +190,13 @@ end
 function DebugTools:OnDungeonFloorEnd(ignore, ignore2)
     local location = REC_LIST.getCurrentMap()
     REC_LIST.generateSV(location.zone, location.segment)
+    REC_LIST.markAsExplored(location.zone, location.segment)
+    PrintInfo("<!>DebugTools:OnDungeonFloorEnd(): checking data of "..location.zone.."["..tostring(location.segment).."]")
 
     -- update floor count for this location
     if SV.Services.RecruitList[location.zone][location.segment] < location.floor then
         SV.Services.RecruitList[location.zone][location.segment] = location.floor
+        PrintInfo("<!>DebugTools:OnDungeonFloorEnd(): updated max floor of "..location.zone.."["..tostring(location.segment).."] to "..tostring(location.floor))
     end
 end
 
