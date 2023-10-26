@@ -270,16 +270,24 @@ function REC_LIST.compileFullDungeonList(zone, segment)
             local spawnlist = step.Spawns
             for j=0, spawnlist.Count-1, 1 do
                 local range = spawnlist:GetSpawnRange(j)
-                local spawn = spawnlist:GetSpawn(j).Spawn.BaseForm.Species
+                local spawn = spawnlist:GetSpawn(j).Spawn
                 local entry = {
                     min = range.Min+1,
                     max = range.Max,
-                    species = spawn,
+                    species = spawn.BaseForm.Species,
                     mode = REC_LIST.undiscovered -- defaults to "???". this will be calculated later
                 }
 
+                -- check if the mon is recruitable
+                local features = spawn.SpawnFeatures
+                for f = 0, features.Count-1, 1 do
+                    if REC_LIST.getClass(features[f]) == "PMDC.LevelGen.MobSpawnUnrecruitable" then
+                        entry.mode = REC_LIST.hide -- do not show in recruit list if cannot recruit
+                    end
+                end
+
                 -- keep only if under explored limit
-                if entry.min <= highest then
+                if entry.mode > REC_LIST.hide and entry.min <= highest then
                     species[entry.species] = species[entry.species] or {}
                     table.insert(species[entry.species], entry)
                 end
@@ -379,7 +387,7 @@ function REC_LIST.compileFloorList()
             end
 
             -- add the member and its display mode to the list
-            if mode>0 and not list.entries[member] then
+            if mode > REC_LIST.hide and not list.entries[member] then
                 table.insert(list.keys, member)
                 list.entries[member] = mode
             end
