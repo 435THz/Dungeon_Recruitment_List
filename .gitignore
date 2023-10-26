@@ -1,2 +1,7 @@
 
-.idea/*
+.idea/.gitignore
+.idea/Dungeon_Recruitment_List.iml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
+.idea/workspace.xml

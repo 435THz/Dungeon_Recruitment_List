@@ -110,22 +110,27 @@ REC_LIST.info_colors = {
 -- -----------------------------------------------
 -- SV structure
 -- -----------------------------------------------
+-- Returns the current state of Spoiler Mode
 function REC_LIST.spoilerMode()
     SV.Services = SV.Services or {}
     SV.Services.RecruitList_spoiler_mode = SV.Services.RecruitList_spoiler_mode or false -- if true, hides the recruit list if it's the player's first time on a floor
     return SV.Services.RecruitList_spoiler_mode
 end
 
+-- Initializes the data slot for the supplied segment if not already present
 function REC_LIST.generateSV(zone, segment)
     SV.Services = SV.Services or {}
     SV.Services.RecruitList = SV.Services.RecruitList or {}
     SV.Services.RecruitList[zone] = SV.Services.RecruitList[zone] or {}
     SV.Services.RecruitList[zone][segment] = SV.Services.RecruitList[zone][segment] or 0
-    SV.Services.RecruitList_DungeonOrder = SV.Services.RecruitList_DungeonOrder or {}
 end
 
+-- Adds the supplied dungeon to the ordered list of explored areas if the section
+-- has spawn data and the zone is not already part of the list
 function REC_LIST.markAsExplored(zone, segment)
-    -- sort keys by recommended level and length, leaving reset dungeons always at the end
+    SV.Services.RecruitList_DungeonOrder = SV.Services.RecruitList_DungeonOrder or {}
+
+    -- sort function that sorts keys by recommended level and length, leaving reset dungeons always last
     local sort = function (a, b)
         -- put level-reset dungeons at the end
         if a.cap ~= b.cap then return b.cap end
@@ -164,13 +169,18 @@ end
 -- Functions
 -- -----------------------------------------------
 
-function REC_LIST.checkFloor()
-    local loc = REC_LIST.getCurrentMap()
+-- Checks if the supplied location floor is higher than the highest reached floor in the current segment
+-- if no location is supplied then it uses the current location
+-- location is a table of properties {string zone, int segment, int floor}
+function REC_LIST.checkFloor(loc)
+    if not loc then loc = REC_LIST.getCurrentMap() end
 
     REC_LIST.generateSV(loc.zone, loc.segment)
-    return SV.Services.RecruitList[loc.zone][loc.segment]>=loc.floor
+    return SV.Services.RecruitList[loc.zone][loc.segment] < loc.floor
 end
 
+-- Wraps a string with a color bracket corresponding to mode. If mode is 1, the
+-- string is replaced with "???" before wrapping
 function REC_LIST.colorName(monster, mode)
     local name = _DATA:GetMonster(monster).Name:ToLocal()
     if mode == 1 then name = '???' end
@@ -178,6 +188,7 @@ function REC_LIST.colorName(monster, mode)
     return '[color='..color..']'..name..'[color]'
 end
 
+-- returns the current map as a table of properties {string zone, int segment, int floor}
 function REC_LIST.getCurrentMap()
     local mapData = {
         zone = _ZONE.CurrentZoneID,
@@ -187,14 +198,15 @@ function REC_LIST.getCurrentMap()
     return mapData
 end
 
--- checks if the player has visited at list one dungeon segment that contains spawn data
+-- Checks if the player has visited at list one dungeon segment that contains spawn data
 function REC_LIST.hasVisitedValidDungeons()
     if not SV.Services or not SV.Services.RecruitList_DungeonOrder then return false end
     return #SV.Services.RecruitList_DungeonOrder > 0
 end
 
--- checks if the specified dungeon segment has been visited and contains spawn data
+-- Checks if the specified dungeon segment has been visited and contains spawn data
 function REC_LIST.isDungeonValid(zone, segment, segmentData)
+    if not segmentData then segmentData = _DATA:GetZone(zone).Segments[segment] end
     if not SV.Services or not SV.Services.RecruitList or not SV.Services.RecruitList[zone] or not SV.Services.RecruitList[zone][segment] then return false end
     if SV.Services.RecruitList[zone][segment] <= 0 then return false end
     local segSteps = segmentData.ZoneSteps
@@ -207,6 +219,9 @@ function REC_LIST.isDungeonValid(zone, segment, segmentData)
     return false
 end
 
+-- Returns a list of all segments of a zone that have a spawn property and of which
+-- at least 1 floor was completed.
+-- Return is a table with properties {int id, string name, int length}
 function REC_LIST.getValidSegments(zone)
     local list = {}
 
@@ -215,9 +230,11 @@ function REC_LIST.getValidSegments(zone)
         if REC_LIST.isDungeonValid(zone, i, segments[i]) then
             local entry = {
                 id = i,
-                name = tostring(i)
+                name = tostring(i),             -- placeholder in case we cannot find a name
+                length = segments[i].FloorCount
             }
 
+            -- look for a title property to extract the name from
             local segSteps = segments[i].ZoneSteps
             for j = 0, segSteps.Count-1, 1 do
                 local step = segSteps[j]
@@ -227,6 +244,7 @@ function REC_LIST.getValidSegments(zone)
                         entry.name = a
                         break
                     end
+                    break
                 end
             end
 
@@ -241,7 +259,6 @@ end
 function REC_LIST.compileFullDungeonList(zone, segment)
     local species = {}  -- used to compact multiple entries that contain the same species
     local list = {}     -- list of all keys in the list. populated only at the end
-
 
     REC_LIST.generateSV(zone, segment)
     local segmentData = _DATA:GetZone(zone).Segments[segment]
@@ -321,6 +338,7 @@ end
 
 -- Extracts a list of all mons spawnable and spawned on the current floor and
 -- then pairs them to the display mode that should be used for that mon's name in the menu
+-- Non-respawning mons are always at the end of the list
 function REC_LIST.compileFloorList()
     local list = {
         keys = {},
@@ -413,6 +431,7 @@ function REC_LIST.compileFloorList()
     return ret
 end
 
+-- Returns the class of an object as string. Useful to extract and check C# classes
 function REC_LIST.getClass(csobject)
     if not csobject then return "nil" end
     local namet = getmetatable(csobject).__name
@@ -422,37 +441,15 @@ function REC_LIST.getClass(csobject)
     end
 end
 
-function REC_LIST.contains(table, key, value)
-    -- if the table does not exist return false
-    if not table then return false end
-
-    -- if the key is supplied
-    if key then
-        -- if the value is supplied return whether or not the key-value pair exists
-        if value then return table[key] ~= nil and table[key] == value
-        -- if the value is omitted return whether or not the key exists
-        else return table[key] ~= nil end
-    end
-
-    -- if nether key nor value are supplied return false
-    if value == nil then return false end
-
-    -- if only the value is supplied look inside the list and return true if found, false otherwise
-    for _, val in pairs(table) do
-        if val == value then return true end
-    end
-    return false
-end
-
-
 -- -----------------------------------------------
 -- Recruitment List Menu
 -- -----------------------------------------------
 -- Menu that displays the recruitment list to the player
 RecruitmentListMenu = Class('RecruitmentListMenu')
 
-function RecruitmentListMenu:initialize(zone, segment)
+function RecruitmentListMenu:initialize(title, zone, segment)
     assert(self, "RecruitmentListMenu:initialize(): self is nil!")
+    self.title = title
     self.fullDungeon = false
     self.fullDungeon_zone = zone
     self.fullDungeon_segment = segment
@@ -483,16 +480,15 @@ function RecruitmentListMenu:DrawMenu()
     --Standard menu divider. Reuse this whenever you need a menu divider at the top for a title.
     self.menu.MenuElements:Add(RogueEssence.Menu.MenuDivider(RogueElements.Loc(8, 8 + 12), self.menu.Bounds.Width - 8 * 2))
 
-    local title = "Recruitment List"
-    self.menu.MenuElements:Add(RogueEssence.Menu.MenuText(title, RogueElements.Loc(16, 8)))
+    self.menu.MenuElements:Add(RogueEssence.Menu.MenuText(self.title, RogueElements.Loc(16, 8)))
 
     -- add a special message if there are no entries
     if #self.list<1 then
         self.menu.MenuElements:Add(RogueEssence.Menu.MenuText("No recruits available", RogueElements.Loc(16, 24)))
         return
     end
-    -- add a special message if spoiler mode is off
-    if not self.fullDungeon and not REC_LIST.checkFloor() and REC_LIST.spoilerMode() then
+    -- add a special message if spoiler mode is on
+    if not self.fullDungeon and REC_LIST.spoilerMode() and REC_LIST.checkFloor() then
         self.menu.MenuElements:Add(RogueEssence.Menu.MenuText("You cannot view this list because this is your", RogueElements.Loc(16, 24)))
         self.menu.MenuElements:Add(RogueEssence.Menu.MenuText("first time reaching this floor.", RogueElements.Loc(16, 38)))
         return
@@ -597,7 +593,7 @@ function RecruitMainChoice:initialize(x)
     -- set up option 1
     local text1 = "List"
     local enabled1 = true
-    local fn1 = function() _MENU:AddMenu(RecruitmentListMenu:new().menu, false) end
+    local fn1 = function() _MENU:AddMenu(RecruitmentListMenu:new("Recruitment List").menu, false) end
     -- set up option 4
     local enabled4 = false
 
@@ -717,7 +713,7 @@ function RecruitOptionsChoice:initialize(x, y)
     local xx = self.parent_bounds.x+70
     local yy = self.parent_bounds.y+14*3
     local spoiler = "Off"
-    if REC_LIST.spoilerMode() then spoiler = "On" end
+    if REC_LIST.spoilerMode() then spoiler = "[color=#FFFF00]On[color]" end
     local text = "Spoiler Mode: "..spoiler
     local options = {
         {text, true, function() self:ToggleSpoilerMode() end}
@@ -759,9 +755,16 @@ end
 function RecruitDungeonChoice:chooseNextMenu(zone)
     local segments = REC_LIST.getValidSegments(zone)
     if #segments < 2 then
-        _MENU:AddMenu(RecruitmentListMenu:new(zone, segments[1]).menu, false)
+        local segment = segments[1]
+        local title = "[color=#FFC663]"..segment.name
+        local max_fl = SV.Services.RecruitList[zone][segment.id]
+        if max_fl < segment.length then
+            title = title.." (Up to "..max_fl.."F)"
+        end
+        title = title.."[color]"
+        _MENU:AddMenu(RecruitmentListMenu:new(title, zone, segment.id).menu, false)
     else
-        _MENU:AddMenu(RecruitSegmentChoice:new(zone).menu, true)
+        _MENU:AddMenu(RecruitSegmentChoice:new(zone, segments).menu, true)
     end
 end
 
@@ -773,16 +776,21 @@ end
 
 RecruitSegmentChoice = Class('RecruitSegmentChoice')
 
-function RecruitSegmentChoice:initialize(zone)
+function RecruitSegmentChoice:initialize(zone, segments)
     assert(self, "RecruitSegmentChoice:initialize(): self is nil!")
     local options = {}
 
-    local segments = REC_LIST.getValidSegments(zone)
     for _,segment in pairs(segments) do
-        local text = tostring(segment.name) --TODO get name of segment. do it in getter function plz
-        local func = function() _MENU:AddMenu(RecruitmentListMenu:new(zone, segment.id).menu, false) end
+        local text = segment.name
+        local title = "[color=#FFC663]"..text
+        local max_fl = SV.Services.RecruitList[zone][segment.id]
+        if max_fl < segment.length then
+            title = title.." (Up to "..max_fl.."F)"
+        end
+        title = title.."[color]"
+        local func = function() _MENU:AddMenu(RecruitmentListMenu:new(title, zone, segment.id).menu, false) end
 
-        table.insert(options, RogueEssence.Menu.MenuTextChoice(text, func, true, Color.LightPink))
+        table.insert(options, RogueEssence.Menu.MenuTextChoice("[color=#FFC663]"..text.."[color]", func))
     end
 
     self.menu = RogueEssence.Menu.ScriptableSingleStripMenu(148, 32, 128, options, 0, function() _GAME:SE("Menu/Cancel"); _MENU:RemoveMenu() end)
