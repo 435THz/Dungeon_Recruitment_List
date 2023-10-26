@@ -2,8 +2,8 @@
   <Name>Dungeon Recruitment List</Name>
   <Author>MistressNebula</Author>
   <Description>Adds an option to the Others menu that allows players to view the current floor or an entire dungeon's spawn list.
-It also shows which Pokémon have been catched.
-Warning: longer dungeon lists can take a bit to load.</Description>
+It also shows which Pokémon have been recruited.
+Warning: longer full dungeon lists can take a bit to load.</Description>
   <Namespace>recruit_list</Namespace>
   <UUID>72AB260C-8C56-41A9-A439-71087CA12A96</UUID>
   <Version>1.0</Version>
