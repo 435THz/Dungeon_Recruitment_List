@@ -188,42 +188,52 @@ end
       When leaving a dungeon floor this is called.
 ---------------------------------------------------------------]]
 function DebugTools:OnDungeonFloorEnd(ignore, ignore2)
-    local location = REC_LIST.getCurrentMap()
-    REC_LIST.generateSV(location.zone, location.segment)
-    REC_LIST.markAsExplored(location.zone, location.segment)
-    PrintInfo("<!>DebugTools:OnDungeonFloorEnd(): checking data of "..location.zone.."["..tostring(location.segment).."]")
+    assert(self, 'DebugTools:OnDungeonFloorEnd() : self is null!')
+    local location = RECRUIT_LIST.getCurrentMap()
+    RECRUIT_LIST.generateDungeonListSV(location.zone, location.segment)
 
     -- update floor count for this location
-    if SV.Services.RecruitList[location.zone][location.segment] < location.floor then
-        SV.Services.RecruitList[location.zone][location.segment] = location.floor
-        PrintInfo("<!>DebugTools:OnDungeonFloorEnd(): updated max floor of "..location.zone.."["..tostring(location.segment).."] to "..tostring(location.floor))
-    end
+    RECRUIT_LIST.updateFloorsCleared(location.zone, location.segment, location.floor)
+    RECRUIT_LIST.markAsExplored(location.zone, location.segment)
 end
 
 --[[---------------------------------------------------------------
-    DebugTools:OnGroundMapInit()
-      When initializing a ground map this is called.
+    DebugTools:OnUpgrade()
+      When version differences are found while loading a save this is called.
 ---------------------------------------------------------------]]
---[[function DebugTools:OnGroundMapInit(ignore)
-    local ground = GAME:GetCurrentGround()
-    print(ground.AssetName)
-    if ground.AssetName ~= "base_camp" then return end
+function DebugTools:OnUpgrade()
+    assert(self, 'DebugTools:OnUpgrade() : self is null!')
+    PrintInfo("RecruitList =>> Loading version")
 
-    SV.Services = SV.Services or {}
-    SV.Services.RecruitList = SV.Services.RecruitList or {}
-    SV.Services.RecruitList.Almotz = SV.Services.RecruitList.Almotz or 0
+    -- update dungeon list data
+    local list =  RECRUIT_LIST.getDungeonListSV()
+    for zone, zone_data in pairs(list) do
+        for segment, _ in pairs(zone_data) do
+            RECRUIT_LIST.generateDungeonListSV(zone, segment)
+        end
+    end
+    -- update dungeon order data
+    local order = RECRUIT_LIST.getDungeonOrder()
+    for _, entry in pairs(order) do
+        if list[entry.zone] then
+            for segment, _ in pairs(list[entry.zone]) do
+                RECRUIT_LIST.markAsExplored(entry.zone, segment)
+            end
+        end
+    end
 
-    local state = SV.Services.RecruitList.Almotz
+    -- add all completed dungeons
+    for entry in luanet.each(_DATA.Save.DungeonUnlocks) do
+        if entry.Value == RogueEssence.Data.GameProgress.UnlockState.Completed and
+                not RECRUIT_LIST.segmentDataExists(entry.Key, 0) then
+            local length = RECRUIT_LIST.getSegmentData(entry.Key, 0).totalFloors
+            RECRUIT_LIST.updateFloorsCleared(entry.Key,0, length)
+            RECRUIT_LIST.markAsExplored(entry.Key, 0)
+        end
+    end
 
-    local species = "zigzagoon"
-    local dir = Direction.Right
-    if state == 0 then dir = Direction.Left end
-
-    local monster = RogueEssence.Dungeon.MonsterID(species, 0, "normal", Gender.Male)
-    local npc = RogueEssence.Ground.GroundChar(monster, RogueElements.Loc(100, 350), dir, "NPC_Almotz")
-    npc:ReloadEvents()
-    ground:AddTempChar(npc)
-end]]--
+    PrintInfo("RecruitList =>> Loaded version")
+end
 
 
 ---Summary
@@ -235,7 +245,7 @@ function DebugTools:Subscribe(med)
     med:Subscribe("DebugTools", EngineServiceEvents.NewGame,           function() self.OnNewGame(self) end )
     med:Subscribe("DebugTools", EngineServiceEvents.LossPenalty,       function(_, args) self.OnLossPenalty(self, args[0]) end )
     med:Subscribe("DebugTools", EngineServiceEvents.DungeonFloorExit,  function(dungeonloc, result) self.OnDungeonFloorEnd(self, dungeonloc, result) end )
-    --  med:Subscribe("DebugTools", EngineServiceEvents.GroundMapInit,     function(mapid) self.OnGroundMapInit(self, mapid) end )
+    med:Subscribe("DebugTools", EngineServiceEvents.UpgradeSave,       function(mapid) self.OnUpgrade(self) end )
     --  med:Subscribe("DebugTools", EngineServiceEvents.GraphicsUnload,    function() self.OnGraphicsUnload(self) end )
     --  med:Subscribe("DebugTools", EngineServiceEvents.Restart,           function() self.OnRestart(self) end )
 end
