@@ -1,6 +1,6 @@
 require 'common'
 
-REC_LIST = {}
+RECRUIT_LIST = {}
 --[[
     recruit_list.lua
 
@@ -11,21 +11,25 @@ REC_LIST = {}
 -- -----------------------------------------------
 -- Constants
 -- -----------------------------------------------
+-- Modes
+RECRUIT_LIST.hide =                    0
+RECRUIT_LIST.unrecruitable_not_seen =  1
+RECRUIT_LIST.not_seen =                2
+RECRUIT_LIST.unrecruitable =           3
+RECRUIT_LIST.seen =                    4
+RECRUIT_LIST.extra_seen =              5
+RECRUIT_LIST.obtained =                6
+RECRUIT_LIST.extra_obtained =          7
+RECRUIT_LIST.obtainedMultiForm =       8
+RECRUIT_LIST.extra_obtainedMultiForm = 9
 
-REC_LIST.hide =                    0
-REC_LIST.undiscovered =            1
-REC_LIST.discovered =              2
-REC_LIST.extra_discovered =        3
-REC_LIST.obtained =                4
-REC_LIST.extra_obtained =          5
-REC_LIST.obtainedMultiForm =       6
-REC_LIST.extra_obtainedMultiForm = 7
+-- Mode colors
+RECRUIT_LIST.colorList = { '#989898', '#FFFFFF', '#989898', '#FFFFFF', '#00FFFF', '#FFFF00', '#FFFFA0', '#FFA500', '#FFE0A0'}
 
-REC_LIST.colorList = {'#FFFFFF','#FFFFFF','#00FFFF','#FFFF00','#FFFFA0','#FFA500','#FFE0A0'}
-
-REC_LIST.info_list_title = "Recruitment List Info"
-REC_LIST.info_colors_title = "Recruitment List Colors"
-REC_LIST.info_list = {
+-- Info menu content
+RECRUIT_LIST.info_list_title = "Recruitment List Info"
+RECRUIT_LIST.info_colors_title = "Recruitment List Colors"
+RECRUIT_LIST.info_list = {
     -- page 1
     {
         "The [color=#00FFFF]Recruitment List[color], as the name suggests,",
@@ -45,17 +49,17 @@ REC_LIST.info_list = {
         "scanned, and the List will not only contain all",
         "species that can spawn naturally in there, but",
         "also all Pokémon that are currently on the floor",
-        "but are not supposed to appear normally. This can",
-        "include Monster House members plus any enemy",
-        "that simply doesn't respawn after defeat.",
-        "See the Color list for more details."
+        "but are not supposed to appear normally."--[[.." If a",]] -- TODO re-insert explanation if fixed
+--        "Pokémon is marked with a \"*\", that means it can",
+--        "spawn on the floor but it is not guaranteed to,",
+--        "and that it will not respawn upon defeat."
     },
     -- page 3
     {
-        "Be careful, however: if on the floor there's a",
-        "Pokémon you never met before that is not part",
-        "of the floor's spawn list, it will not appear",
-        "in the [color=#00FFFF]Recruitment List[color] regardless of",
+        "Be careful: if on your floor there's a Pokémon",
+        "you never met before and that is not part of",
+        "the floor's spawn list, it will not appear in",
+        "the [color=#00FFFF]Recruitment List[color] regardless of",
         "whether or not it can be recruited."
     },
     -- page 4
@@ -73,14 +77,25 @@ REC_LIST.info_list = {
     },
     -- page 5
     {
-        "This mod comes with a Spoiler Mode that",
+        "This mod comes with a [color=#FFFF00]Spoiler Mode[color] that",
         "obscures the current floor's [color=#00FFFF]Recruitment List[color]",
         "during your first visit.",
-        "You can toggle it from the Options menu,",
-        "accessible only outside of Dungeons."
+--        "You can also view a dungeon/floor's full spawn",
+--        "list by turning off the Recruit Filter.",
+--        "Unrecruitable Pokémon will be listed in gray.",
+        "You can toggle this mode from the Options",
+        "menu, accessible only outside of Dungeons."
     }
 }
-REC_LIST.info_colors = {
+RECRUIT_LIST.dev_RecruitFilter = {
+    "[color=#FFA0FF]DEV MODE ONLY[color]:",
+    "Being in [color=#FFA0FF]Dev Mode[color] grants you the ability to see",
+    "even Pokémon that are in a [color=#FFC060]Dungeon[color]'s spawn list",
+    "but cannot be recruited. These Pokémon will",
+    "appear [color=#989898]greyed out[color] in the [color=#00FFFF]Recruitment List[color]."
+}
+-- Colors menu content
+RECRUIT_LIST.info_colors = {
     -- page 1
     {
         "Colors used for Pokémon that keep appearing",
@@ -111,85 +126,234 @@ REC_LIST.info_colors = {
 -- SV structure
 -- -----------------------------------------------
 -- Returns the current state of Spoiler Mode
-function REC_LIST.spoilerMode()
+function RECRUIT_LIST.spoilerMode()
     SV.Services = SV.Services or {}
     SV.Services.RecruitList_spoiler_mode = SV.Services.RecruitList_spoiler_mode or false -- if true, hides the recruit list if it's the player's first time on a floor
     return SV.Services.RecruitList_spoiler_mode
 end
 
--- Initializes the data slot for the supplied segment if not already present
-function REC_LIST.generateSV(zone, segment)
+-- Toggles the current state of Spoiler Mode
+function RECRUIT_LIST.toggleSpoilerMode()
+    if RECRUIT_LIST.spoilerMode() then SV.Services.RecruitList_spoiler_mode = false else
+        SV.Services.RecruitList_spoiler_mode = true
+    end
+end
+
+-- Returns the current state of Show Unrecruitable
+function RECRUIT_LIST.showUnrecruitable()
+    SV.Services = SV.Services or {}
+    SV.Services.RecruitList_show_unrecruitable = SV.Services.RecruitList_show_unrecruitable or false -- if true, hides the recruit list if it's the player's first time on a floor
+    -- always shows unrecruitable in dev mode
+    return SV.Services.RecruitList_show_unrecruitable or RogueEssence.DiagManager.Instance.DevMode
+end
+
+-- Toggles the current state of Show Unrecruitable
+function RECRUIT_LIST.toggleShowUnrecruitable()
+    if RECRUIT_LIST.showUnrecruitable() then SV.Services.RecruitList_show_unrecruitable = false else
+        SV.Services.RecruitList_show_unrecruitable = true
+    end
+end
+
+
+
+-- Initializes the basic dungeon list data structure
+function RECRUIT_LIST.generateDungeonListBaseSV()
     SV.Services = SV.Services or {}
     SV.Services.RecruitList = SV.Services.RecruitList or {}
+end
+
+-- Initializes the data slot for the supplied segment if not already present
+function RECRUIT_LIST.generateDungeonListSV(zone, segment)
+    RECRUIT_LIST.generateDungeonListBaseSV()
     SV.Services.RecruitList[zone] = SV.Services.RecruitList[zone] or {}
-    SV.Services.RecruitList[zone][segment] = SV.Services.RecruitList[zone][segment] or 0
+
+    -- update old data if present
+    local defaultFloor = 0
+    if type(SV.Services.RecruitList[zone][segment]) == "number" then
+        defaultFloor = SV.Services.RecruitList[zone][segment]
+        SV.Services.RecruitList[zone][segment] = nil
+    end
+
+    if not SV.Services.RecruitList[zone][segment] then
+        local segment_data = _DATA:GetZone(zone).Segments[segment]
+        SV.Services.RecruitList[zone][segment] = {
+            --TODO see if "special" is needed, aka if reading floor data is too impactful on performance. Can't until fix
+--            special = {},                           -- {species -> species} list of pokémon to be listed with no specific floor, ordered by dex number.
+            reload = false,                         -- if true, need to reload list. useless if list does not exist
+            floorsCleared = defaultFloor,           -- number of floors cleared in the dungeon
+            totalFloors = segment_data.FloorCount,  -- total amount of floors in this segment
+            completed = false,                      -- true if the dungeon has been completed
+            name = "Segment "..tostring(segment)    -- segment display name
+        }
+        -- look for a title property to extract the name from
+        local segSteps = segment_data.ZoneSteps
+        for j = 0, segSteps.Count-1, 1 do
+            local step = segSteps[j]
+            if RECRUIT_LIST.getClass(step) == "PMDC.LevelGen.FloorNameDropZoneStep" then
+                local name = step.Name:ToLocal()
+                for a in name:gmatch(("[^\r\n]+")) do
+                    SV.Services.RecruitList[zone][segment].name = a
+                    break
+                end
+                break
+            end
+        end
+    end
+end
+
+-- Returns the basic dungeon list data structure
+function RECRUIT_LIST.getDungeonListSV()
+    RECRUIT_LIST.generateDungeonListBaseSV()
+    return SV.Services.RecruitList
+end
+
+-- Returns the number of floors cleared on the provided segment
+function RECRUIT_LIST.getFloorsCleared(zone, segment)
+    RECRUIT_LIST.generateDungeonListSV(zone, segment)
+    return SV.Services.RecruitList[zone][segment].floorsCleared
+end
+
+-- Updates the number of floors cleared on the provided segment
+-- if the provided floor number is higher than the currently stored one
+function RECRUIT_LIST.updateFloorsCleared(zone, segment, floor)
+    if RECRUIT_LIST.checkFloor(zone, segment, floor) then
+        SV.Services.RecruitList[zone][segment].floorsCleared = floor
+    end
+end
+
+-- Marks the provided segment as a completed area
+function RECRUIT_LIST.markAsCompleted(zone, segment)
+    local sv = RECRUIT_LIST.getDungeonListSV()
+    if sv[zone] and sv[zone][segment] then
+        SV.Services.RecruitList[zone][segment].completed = true
+    end
+end
+
+-- Checks if the supplied location floor is higher than the highest reached floor in the current segment
+-- if no location is supplied then it uses the current location
+-- location is a table of properties {string zone, int segment, int floor}
+function RECRUIT_LIST.checkFloor(zone, segment, floor)
+    if not zone or not segment or not floor then
+        local loc = RECRUIT_LIST.getCurrentMap()
+        zone = loc.zone
+        segment = loc.segment
+        floor = loc.floor
+    end
+    return RECRUIT_LIST.getFloorsCleared(zone, segment) < floor
+end
+
+-- Marks the segment as pending for an extra spawn list update.
+function RECRUIT_LIST.markForUpdate(zone, segment)
+    RECRUIT_LIST.markAsExplored(zone, segment)
+    RECRUIT_LIST.generateDungeonListSV(zone, segment)
+    SV.Services.RecruitList[zone][segment].reload = true
+end
+
+-- Adds a new Pokémon to the segment's extra recruit list
+function RECRUIT_LIST.registerExtraRecruit(zone, segment, monster)
+    local data = RECRUIT_LIST.getSegmentData(zone, segment)
+    if data.special[monster] then return end -- discard if not new
+    data.special[monster] = monster
+end
+
+-- Returns a segment's spawn list data structure
+function RECRUIT_LIST.getSegmentData(zone, segment)
+    RECRUIT_LIST.generateDungeonListSV(zone, segment)
+    return SV.Services.RecruitList[zone][segment]
+end
+
+-- Returns whether or not a segment's spawn list data structure exists
+function RECRUIT_LIST.segmentDataExists(zone, segment)
+    return SV.Services and SV.Services.RecruitList and SV.Services.RecruitList[zone]
+            and SV.Services.RecruitList[zone][segment]
+end
+
+
+-- Generates the data slot for dungeon order if not already present
+function RECRUIT_LIST.generateOrderSV()
+    SV.Services = SV.Services or {}
+    SV.Services.RecruitList_DungeonOrder = SV.Services.RecruitList_DungeonOrder or {}
+end
+
+-- Returns the ordered list of all explored dungeons
+function RECRUIT_LIST.getDungeonOrder()
+    RECRUIT_LIST.generateOrderSV()
+    return SV.Services.RecruitList_DungeonOrder
+end
+
+-- Checks if the player has visited at list one dungeon segment that contains spawn data
+function RECRUIT_LIST.hasVisitedValidDungeons()
+    return #RECRUIT_LIST.getDungeonOrder() > 0
 end
 
 -- Adds the supplied dungeon to the ordered list of explored areas if the section
 -- has spawn data and the zone is not already part of the list
-function REC_LIST.markAsExplored(zone, segment)
-    SV.Services.RecruitList_DungeonOrder = SV.Services.RecruitList_DungeonOrder or {}
+function RECRUIT_LIST.markAsExplored(zone, segment)
 
-    -- sort function that sorts keys by recommended level and length, leaving reset dungeons always last
-    local sort = function (a, b)
-        -- put level-reset dungeons at the end
-        if a.cap ~= b.cap then return b.cap end
-        -- order non-level-reset dungeons by ascending recommended level
-        if not a.cap and a.level ~= b.level then return a.level < b.level end
-        -- order dungeons by ascending length
-        if a.length ~= b.length then return not a.length < b.length end
-        -- order dungeons alphabetically
-        return a.zone < b.zone
-    end
-
-    if REC_LIST.isDungeonValid(zone, segment) then
+    if RECRUIT_LIST.isSegmentValid(zone, segment) then
         local zone_data = _DATA:GetZone(zone)
-        local len = 100
-        if zone_data.summary then len = zone_data.summary.CountedFloors end
+
         local entry = {
             zone = zone,
             cap = zone_data.LevelCap,
             level = zone_data.Level,
-            length = len,
-            name = zone_data:GetColoredName()
+            length = zone_data:GenerateEntrySummary().CountedFloors,
+            name = zone_data.Name:ToLocal()
         }
-        for i=1, #SV.Services.RecruitList_DungeonOrder, 1 do
-            local other = SV.Services.RecruitList_DungeonOrder[i]
-            if entry.zone == other.zone then return end
-            if sort(entry, other) then
-                table.insert(SV.Services.RecruitList_DungeonOrder, i, entry)
+        --mark as completed if necessary
+        if not RECRUIT_LIST.checkFloor(zone, segment, RECRUIT_LIST.getSegmentData(zone, segment).totalFloors) then
+            RECRUIT_LIST.markAsCompleted(zone, segment)
+        end
+
+        --add to list if not already present
+        for i=1, #RECRUIT_LIST.getDungeonOrder(), 1 do
+            local other = RECRUIT_LIST.getDungeonOrder()[i]
+            if entry.zone == other.zone then
+                other.name = entry.name -- update name data if necessary
+                other.length = zone_data:GenerateEntrySummary().CountedFloors --fix for old summary error
+                return
+            end
+            if RECRUIT_LIST.sortZones(entry, other) then
+                table.insert(RECRUIT_LIST.getDungeonOrder(), i, entry)
                 return
             end
         end
-        table.insert(SV.Services.RecruitList_DungeonOrder, entry)
+        table.insert(RECRUIT_LIST.getDungeonOrder(), entry)
+    elseif not RECRUIT_LIST.getSegmentData(zone, segment).completed then
+        --mark as completed if necessary
+        if not RECRUIT_LIST.checkFloor(zone, segment, RECRUIT_LIST.getSegmentData(zone, segment).totalFloors) then
+            RECRUIT_LIST.markAsCompleted(zone, segment)
+        end
     end
+end
+
+-- sort function that sorts dungeons by recommended level and length, leaving reset dungeons always last
+function RECRUIT_LIST.sortZones(a, b)
+    -- put level-reset dungeons at the end
+    if a.cap ~= b.cap then return b.cap end
+    -- order non-level-reset dungeons by ascending recommended level
+    if not a.cap and a.level ~= b.level then return a.level < b.level end
+    -- order dungeons by ascending length
+    if a.length ~= b.length then return not (a.length < b.length) end
+    -- order dungeons alphabetically
+    return a.zone < b.zone
 end
 
 -- -----------------------------------------------
 -- Functions
 -- -----------------------------------------------
-
--- Checks if the supplied location floor is higher than the highest reached floor in the current segment
--- if no location is supplied then it uses the current location
--- location is a table of properties {string zone, int segment, int floor}
-function REC_LIST.checkFloor(loc)
-    if not loc then loc = REC_LIST.getCurrentMap() end
-
-    REC_LIST.generateSV(loc.zone, loc.segment)
-    return SV.Services.RecruitList[loc.zone][loc.segment] < loc.floor
-end
-
 -- Wraps a string with a color bracket corresponding to mode. If mode is 1, the
 -- string is replaced with "???" before wrapping
-function REC_LIST.colorName(monster, mode)
+function RECRUIT_LIST.colorName(monster, mode, asterisk)
     local name = _DATA:GetMonster(monster).Name:ToLocal()
-    if mode == 1 then name = '???' end
-    local color = REC_LIST.colorList[mode]
+    if asterisk then name = "*"..name end
+    if mode == 1 or mode == 2 then name = '???' end
+    local color = RECRUIT_LIST.tri(mode>0, RECRUIT_LIST.colorList[mode], "#FF0000")
     return '[color='..color..']'..name..'[color]'
 end
 
 -- returns the current map as a table of properties {string zone, int segment, int floor}
-function REC_LIST.getCurrentMap()
+function RECRUIT_LIST.getCurrentMap()
     local mapData = {
         zone = _ZONE.CurrentZoneID,
         segment = _ZONE.CurrentMapID.Segment,
@@ -198,21 +362,44 @@ function REC_LIST.getCurrentMap()
     return mapData
 end
 
--- Checks if the player has visited at list one dungeon segment that contains spawn data
-function REC_LIST.hasVisitedValidDungeons()
-    if not SV.Services or not SV.Services.RecruitList_DungeonOrder then return false end
-    return #SV.Services.RecruitList_DungeonOrder > 0
+-- TODO remove in final version
+function RL_printall(table, level, root)
+    if root == nil then print(" ") end
+
+    if table == nil then print("<nil>") return end
+    if level == nil then level = 0 end
+    for key, value in pairs(table) do
+        local spacing = ""
+        for _=1, level*2, 1 do
+            spacing = " "..spacing
+        end
+        if type(value) == 'table' then
+            print(spacing..tostring(key).." = {")
+            RL_printall(value,level+1, false)
+            print(spacing.."}")
+        else
+            print(spacing..tostring(key).." = "..tostring(value))
+        end
+    end
+
+    if root == nil then print(" ") end
 end
 
 -- Checks if the specified dungeon segment has been visited and contains spawn data
-function REC_LIST.isDungeonValid(zone, segment, segmentData)
-    if not segmentData then segmentData = _DATA:GetZone(zone).Segments[segment] end
+function RECRUIT_LIST.isSegmentValid(zone, segment, segmentData)
+
+    if not segmentData then segmentData = _DATA:GetZone(zone).Segments[segment] end --load data now if not already
+
     if not SV.Services or not SV.Services.RecruitList or not SV.Services.RecruitList[zone] or not SV.Services.RecruitList[zone][segment] then return false end
-    if SV.Services.RecruitList[zone][segment] <= 0 then return false end
+
+    if RECRUIT_LIST.getSegmentData(zone, segment).floorsCleared <= 0 then return false end
+    if RECRUIT_LIST.getSegmentData(zone, segment).special and #RECRUIT_LIST.getSegmentData(zone, segment).special>0 then
+        return true
+    end
     local segSteps = segmentData.ZoneSteps
     for i = 0, segSteps.Count-1, 1 do
         local step = segSteps[i]
-        if REC_LIST.getClass(step) == "RogueEssence.LevelGen.TeamSpawnZoneStep" then
+        if RECRUIT_LIST.getClass(step) == "RogueEssence.LevelGen.TeamSpawnZoneStep" then
             return true
         end
     end
@@ -221,33 +408,19 @@ end
 
 -- Returns a list of all segments of a zone that have a spawn property and of which
 -- at least 1 floor was completed.
--- Return is a table with properties {int id, string name, int length}
-function REC_LIST.getValidSegments(zone)
+-- Return is a list of tables with properties {int id, string name, boolean completed}
+function RECRUIT_LIST.getValidSegments(zone)
     local list = {}
 
-    local segments = _DATA:GetZone(zone).Segments
-    for i = 0, segments.Count-1, 1 do
-        if REC_LIST.isDungeonValid(zone, i, segments[i]) then
+    local segments = RECRUIT_LIST.getDungeonListSV()[zone]
+    if segments == nil then return list end
+    for i, segment in pairs(segments) do
+        if RECRUIT_LIST.isSegmentValid(zone, i) then
             local entry = {
                 id = i,
-                name = tostring(i),             -- placeholder in case we cannot find a name
-                length = segments[i].FloorCount
+                name = segment.name,
+                completed = segment.completed
             }
-
-            -- look for a title property to extract the name from
-            local segSteps = segments[i].ZoneSteps
-            for j = 0, segSteps.Count-1, 1 do
-                local step = segSteps[j]
-                if REC_LIST.getClass(step) == "PMDC.LevelGen.FloorNameDropZoneStep" then
-                    local name = step.Name:ToLocal()
-                    for a in name:gmatch(("[^\r\n]+")) do
-                        entry.name = a
-                        break
-                    end
-                    break
-                end
-            end
-
             table.insert(list,entry)
         end
     end
@@ -256,17 +429,20 @@ end
 
 -- Extracts a list of all mons spawnable in a dungeon, then maps them to the display mode that
 -- should be used for that mon's name in the menu. Includes only mons that can respawn.
-function REC_LIST.compileFullDungeonList(zone, segment)
+function RECRUIT_LIST.compileFullDungeonList(zone, segment)
     local species = {}  -- used to compact multiple entries that contain the same species
     local list = {}     -- list of all keys in the list. populated only at the end
 
-    REC_LIST.generateSV(zone, segment)
+    RECRUIT_LIST.generateDungeonListSV(zone, segment)
     local segmentData = _DATA:GetZone(zone).Segments[segment]
     local segSteps = segmentData.ZoneSteps
-    local highest = SV.Services.RecruitList[zone][segment]
+    local highest = RECRUIT_LIST.getFloorsCleared(zone,segment)
     for i = 0, segSteps.Count-1, 1 do
         local step = segSteps[i]
-        if REC_LIST.getClass(step) == "RogueEssence.LevelGen.TeamSpawnZoneStep" then
+        if RECRUIT_LIST.getClass(step) == "RogueEssence.LevelGen.TeamSpawnZoneStep" then
+            local entry_list = {}
+
+            -- Check Spawns
             local spawnlist = step.Spawns
             for j=0, spawnlist.Count-1, 1 do
                 local range = spawnlist:GetSpawnRange(j)
@@ -275,19 +451,57 @@ function REC_LIST.compileFullDungeonList(zone, segment)
                     min = range.Min+1,
                     max = range.Max,
                     species = spawn.BaseForm.Species,
-                    mode = REC_LIST.undiscovered -- defaults to "???". this will be calculated later
+                    mode = RECRUIT_LIST.not_seen, -- defaults to "???". this will be calculated later
+                    asterisk = false
                 }
-
                 -- check if the mon is recruitable
+                local recruitable = true
                 local features = spawn.SpawnFeatures
                 for f = 0, features.Count-1, 1 do
-                    if REC_LIST.getClass(features[f]) == "PMDC.LevelGen.MobSpawnUnrecruitable" then
-                        entry.mode = REC_LIST.hide -- do not show in recruit list if cannot recruit
+                    if RECRUIT_LIST.getClass(features[f]) == "PMDC.LevelGen.MobSpawnUnrecruitable" then
+                        recruitable = false
+                        entry.mode = RECRUIT_LIST.unrecruitable
                     end
                 end
+                if recruitable or RECRUIT_LIST.showUnrecruitable() then
+                    table.insert(entry_list, entry)
+                end
+            end
 
+            -- Check Specific Spawns
+            spawnlist = step.SpecificSpawns -- SpawnRangeList
+            for j=0, spawnlist.Count-1, 1 do
+                local range = spawnlist:GetSpawnRange(j)
+                local spawns = spawnlist:GetSpawn(j):GetPossibleSpawns() -- SpawnList
+                for s=0, spawns.Count-1, 1 do
+                    local spawn = spawns:GetSpawn(s)
+
+                    local entry = {
+                        min = range.Min+1,
+                        max = range.Max,
+                        species = spawn.BaseForm.Species,
+                        mode = RECRUIT_LIST.not_seen, -- defaults to "???". this will be calculated later
+                        asterisk = false
+                    }
+                    -- check if the mon is recruitable
+                    local recruitable = true
+                    local features = spawn.SpawnFeatures
+                    for f = 0, features.Count-1, 1 do
+                        if RECRUIT_LIST.getClass(features[f]) == "PMDC.LevelGen.MobSpawnUnrecruitable" then
+                            recruitable = false
+                            entry.mode = RECRUIT_LIST.unrecruitable
+                        end
+                    end
+                    if recruitable or RECRUIT_LIST.showUnrecruitable() then
+                        table.insert(entry_list, entry)
+                    end
+                end
+            end
+
+            -- Mix everything up
+            for _, entry in pairs(entry_list) do
                 -- keep only if under explored limit
-                if entry.mode > REC_LIST.hide and entry.min <= highest then
+                if entry.mode > RECRUIT_LIST.hide and entry.min <= highest then
                     species[entry.species] = species[entry.species] or {}
                     table.insert(species[entry.species], entry)
                 end
@@ -296,12 +510,14 @@ function REC_LIST.compileFullDungeonList(zone, segment)
     end
 
     for _, entry in pairs(species) do
-        -- sort species list
+        -- sort species-specific list by first appearance
         table.sort(entry, function (a, b)
             return a.min < b.min
         end)
         local current = entry[1]
 
+        -- fuse entries whose floor boundaries touch or overlap
+        -- put final entries in output list
         if #entry>1 then
             for i = 2, #entry, 1 do
                 local next = entry[i]
@@ -316,7 +532,7 @@ function REC_LIST.compileFullDungeonList(zone, segment)
         table.insert(list,current)
     end
 
-    -- sort the final list by min floor, max floor and then dex
+    -- sort output list by min floor, max floor and then dex
     table.sort(list, function (a, b)
         if a.min == b.min then
             if a.max == b.max then
@@ -330,24 +546,29 @@ function REC_LIST.compileFullDungeonList(zone, segment)
     for _,elem in pairs(list) do
         local state = _DATA.Save:GetMonsterUnlock(elem.species)
 
-        -- check if the mon has been seen or obtained
-        if state == RogueEssence.Data.GameProgress.UnlockState.Discovered then
-            elem.mode = REC_LIST.discovered
-        elseif state == RogueEssence.Data.GameProgress.UnlockState.Completed then
-            if _DATA:GetMonster(elem.species).Forms.Count>1 then
-                elem.mode = REC_LIST.obtainedMultiForm --special color for multi-form mons
-            else
-                elem.mode = REC_LIST.obtained
+        if elem.mode ~= RECRUIT_LIST.unrecruitable then
+            -- check if the mon has been seen or obtained
+            if state == RogueEssence.Data.GameProgress.UnlockState.Discovered then
+                    elem.mode = RECRUIT_LIST.seen
+            elseif state == RogueEssence.Data.GameProgress.UnlockState.Completed then
+                if _DATA:GetMonster(elem.species).Forms.Count>1 then
+                    elem.mode = RECRUIT_LIST.obtainedMultiForm --special color for multi-form mons
+                else
+                    elem.mode = RECRUIT_LIST.obtained
+                end
             end
+        elseif state == RogueEssence.Data.GameProgress.UnlockState.None then
+            elem.mode = RECRUIT_LIST.unrecruitable_not_seen
         end
     end
     return list
 end
 
+
 -- Extracts a list of all mons spawnable and spawned on the current floor and
 -- then pairs them to the display mode that should be used for that mon's name in the menu
 -- Non-respawning mons are always at the end of the list
-function REC_LIST.compileFloorList()
+function RECRUIT_LIST.compileFloorList()
     local list = {
         keys = {},
         entries = {}
@@ -365,32 +586,72 @@ function REC_LIST.compileFloorList()
         for j = 0, spawnList.Count-1, 1 do
             local member = spawnList:GetSpawn(j).BaseForm.Species
             local state = _DATA.Save:GetMonsterUnlock(member)
-            local mode = REC_LIST.undiscovered -- default is to "???" respawning mons if unknown
+            local mode = RECRUIT_LIST.not_seen -- default is to "???" respawning mons if unknown
 
             -- check if the mon has been seen or obtained
             if state == RogueEssence.Data.GameProgress.UnlockState.Discovered then
-                mode = REC_LIST.discovered
+                mode = RECRUIT_LIST.seen
             elseif state == RogueEssence.Data.GameProgress.UnlockState.Completed then
                 if _DATA:GetMonster(member).Forms.Count>1 then
-                    mode = REC_LIST.obtainedMultiForm --special color for multi-form mons
+                    mode = RECRUIT_LIST.obtainedMultiForm --special color for multi-form mons
                 else
-                    mode = REC_LIST.obtained
+                    mode = RECRUIT_LIST.obtained
                 end
             end
 
             -- check if the mon is recruitable
             local features = spawnList:GetSpawn(j).SpawnFeatures
             for f = 0, features.Count-1, 1 do
-                if REC_LIST.getClass(features[f]) == "PMDC.LevelGen.MobSpawnUnrecruitable" then
-                    mode = REC_LIST.hide -- do not show in recruit list if cannot recruit
+                if RECRUIT_LIST.getClass(features[f]) == "PMDC.LevelGen.MobSpawnUnrecruitable" then
+                    if RECRUIT_LIST.showUnrecruitable() then
+                        if mode == RECRUIT_LIST.not_seen then
+                            mode = RECRUIT_LIST.unrecruitable_not_seen
+                        else
+                            mode = RECRUIT_LIST.unrecruitable
+                        end
+                    else
+                        mode = RECRUIT_LIST.hide -- do not show in recruit list if cannot recruit
+                    end
                 end
             end
 
             -- add the member and its display mode to the list
-            if mode > REC_LIST.hide and not list.entries[member] then
+            if mode > RECRUIT_LIST.hide and not list.entries[member] then
                 table.insert(list.keys, member)
-                list.entries[member] = mode
+                list.entries[member] = {mode, false}
             end
+        end
+    end
+
+    --check the floor-specific spawn data
+    local loc = RECRUIT_LIST.getCurrentMap()
+    local segment_data = _DATA:GetZone(loc.zone).Segments[loc.segment]
+    local floor_data
+    if RECRUIT_LIST.getClass(segment_data) == "RogueEssence.LevelGen.SingularSegment" then
+        floor_data = segment_data.BaseFloor
+    else
+        floor_data = segment_data.Floors[loc.floor-1]
+    end
+    local floor_spawns = RECRUIT_LIST.recursive_check_spawn_data(floor_data, {})
+    for _, elem in pairs(floor_spawns) do
+        local state = _DATA.Save:GetMonsterUnlock(elem)
+        local mode = RECRUIT_LIST.not_seen -- default is to "???" respawning mons if unknown
+
+        -- check if the mon has been seen or obtained
+        if state == RogueEssence.Data.GameProgress.UnlockState.Discovered then
+            mode = RECRUIT_LIST.seen
+        elseif state == RogueEssence.Data.GameProgress.UnlockState.Completed then
+            if _DATA:GetMonster(member).Forms.Count>1 then
+                mode = RECRUIT_LIST.obtainedMultiForm
+            else
+                mode = RECRUIT_LIST.obtained
+            end
+        end
+
+        -- add the member and its display mode to the list
+        if mode> RECRUIT_LIST.hide and not list.entries[elem] then
+            table.insert(list.keys, elem)
+            list.entries[elem] = {mode, true}
         end
     end
 
@@ -405,25 +666,25 @@ function REC_LIST.compileFloorList()
         for j = 0, team.Count-1, 1 do
             local member = team[j].BaseForm.Species
             local state = _DATA.Save:GetMonsterUnlock(member)
-            local mode = REC_LIST.hide -- default is to not show non-respawning mons if unknown
+            local mode = RECRUIT_LIST.hide -- default is to not show non-respawning mons if unknown
 
             -- check if the mon has been seen or obtained
             if state == RogueEssence.Data.GameProgress.UnlockState.Discovered then
-                mode = REC_LIST.extra_discovered
+                mode = RECRUIT_LIST.extra_seen
             elseif state == RogueEssence.Data.GameProgress.UnlockState.Completed then
                 if _DATA:GetMonster(member).Forms.Count>1 then
-                    mode = REC_LIST.extra_obtainedMultiForm
+                    mode = RECRUIT_LIST.extra_obtainedMultiForm
                 else
-                    mode = REC_LIST.extra_obtained
+                    mode = RECRUIT_LIST.extra_obtained
                 end
             end
-            -- do not show in recruit list if cannot recruit
-            if team[j].Unrecruitable then mode = REC_LIST.hide end
+            -- do not show in recruit list if cannot recruit, no matter the list
+            if team[j].Unrecruitable then mode = RECRUIT_LIST.hide end
 
             -- add the member and its display mode to the list
-            if mode>REC_LIST.hide and not list.entries[member] then
+            if mode> RECRUIT_LIST.hide and not list.entries[member] then
                 table.insert(list.keys, member)
-                list.entries[member] = mode
+                list.entries[member] = {mode, false}
             end
         end
     end
@@ -432,15 +693,68 @@ function REC_LIST.compileFloorList()
     for _,key in pairs(list.keys) do
         local entry = {
             species = key,
-            mode = list.entries[key]
+            mode = list.entries[key][1],
+            asterisk = list.entries[key][2]
         }
         table.insert(ret,entry)
     end
     return ret
 end
 
--- Returns the class of an object as string. Useful to extract and check C# classes
-function REC_LIST.getClass(csobject)
+-- Scans for non-respawning spawn list members
+-- Goes into recursion for ChanceFloorGen floor plans. Nothing shall be left unchecked.
+function RECRUIT_LIST.recursive_check_spawn_data(data, list)
+    if RECRUIT_LIST.getClass(data) == "RogueEssence.LevelGen.ChanceFloorGen" then
+        for i=0, data.Spawn.Count-1, 1 do
+            RECRUIT_LIST.recursive_check_spawn_data(data:GetSpawn(i), list)
+        end
+    else
+        -- TODO hhhhhhhhhh
+        --[[for step in luanet.each(data.GenSteps:GetPriorities()) do
+            print(RECRUIT_LIST.getClass(step))
+        end
+        --[[    if RECRUIT_LIST.getClass(step) == "RogueEssence.LevelGen.MobSpawnStep`1" then --RE.LG.MobSpawnStep`1
+                local spawns = step.Spawns  -- SpawnList<TeamSpawner>
+                for i = 0, spawns.Count-1, 1 do
+                    local spawnList = spawns:GetSpawn(i):GetPossibleSpawns()
+                    for j = 0, spawnList.Count-1, 1 do
+
+                        -- TODO if fixed, add show unrecruitables check
+                        -- check if the mon is recruitable
+                        local features = spawnList:GetSpawn(j).SpawnFeatures
+                        local recruitable = true
+                        for f = 0, features.Count-1, 1 do
+                            if RECRUIT_LIST.getClass(features[f]) == "PMDC.LevelGen.MobSpawnUnrecruitable" then
+                                recruitable = false
+                            end
+                        end
+                        if recruitable then
+                            local species = spawnList:GetSpawn(j).BaseForm.Species
+                            table.insert(list, species)
+                        end
+                    end
+                end
+            elseif RECRUIT_LIST.getClass(step):match("Place[A-za-z0-9_]*MobsStep`%d") then
+                if not step.Spawn.Ally then
+                    local spawns = step.Spawn:GetSpawns() --List<RE.Dung.Team>
+                    for i = 0, spawns.Count-1, 1 do
+                        local team = spawns[i].Players    --EventedList<Character>
+                        for j = 0, team.Count-1, 1 do
+                            if not team[j].Unrecruitable then -- TODO if fixed, add show unrecruitables check
+                                local species = team[j].BaseForm.Species
+                                table.insert(list, species)
+                            end
+                        end
+                    end
+                end
+            end
+        end]]--
+    end
+    return list
+end
+
+-- Returns the class of an object as string. Useful to extract and check C# class names
+function RECRUIT_LIST.getClass(csobject)
     if not csobject then return "nil" end
     local namet = getmetatable(csobject).__name
     if not namet then return type(csobject) end
@@ -449,6 +763,10 @@ function REC_LIST.getClass(csobject)
     end
 end
 
+-- quick ternary conditional operator implementation
+function RECRUIT_LIST.tri(check, y, n)
+    if check then return y else return n end
+end
 -- -----------------------------------------------
 -- Recruitment List Menu
 -- -----------------------------------------------
@@ -473,9 +791,9 @@ function RecruitmentListMenu:initialize(title, zone, segment)
     self.dirPressed = false
     self.list = {}
     if self.fullDungeon then
-        self.list = REC_LIST.compileFullDungeonList(zone, segment)
+        self.list = RECRUIT_LIST.compileFullDungeonList(zone, segment)
     else
-        self.list = REC_LIST.compileFloorList()
+        self.list = RECRUIT_LIST.compileFloorList()
     end
     self.page = 0
     self.PAGE_MAX = (#self.list+1)//self.ENTRY_LIMIT
@@ -496,7 +814,7 @@ function RecruitmentListMenu:DrawMenu()
         return
     end
     -- add a special message if spoiler mode is on
-    if not self.fullDungeon and REC_LIST.spoilerMode() and REC_LIST.checkFloor() then
+    if not self.fullDungeon and RECRUIT_LIST.spoilerMode() and RECRUIT_LIST.checkFloor() then
         self.menu.MenuElements:Add(RogueEssence.Menu.MenuText("You cannot view this list because this is your", RogueElements.Loc(16, 24)))
         self.menu.MenuElements:Add(RogueEssence.Menu.MenuText("first time reaching this floor.", RogueElements.Loc(16, 38)))
         return
@@ -526,13 +844,14 @@ function RecruitmentListMenu:DrawMenu()
         local ypad = 24
         local xdist = ((self.menu.Bounds.Width-32)//self.ENTRY_COLUMNS)
         local ydist = 14
+        local xadjust = RECRUIT_LIST.tri(self.list[i].asterisk and self.list[i].mode > RECRUIT_LIST.not_seen, 6, 0)
 
         -- add element
-        local x = xpad + xdist * col
+        local x = xpad + xdist * col - xadjust
         local y = ypad + ydist * line
-        local text = REC_LIST.colorName(self.list[i].species, self.list[i].mode)
+        local text = RECRUIT_LIST.colorName(self.list[i].species, self.list[i].mode, self.list[i].asterisk)
         if self.fullDungeon then
-            local maxFloor = SV.Services.RecruitList[self.fullDungeon_zone][self.fullDungeon_segment]
+            local maxFloor = RECRUIT_LIST.getFloorsCleared(self.fullDungeon_zone, self.fullDungeon_segment)
             local text_fl = tostring(self.list[i].min).."F"
             if self.list[i].min ~= self.list[i].max then
                 text_fl = text_fl.."-"
@@ -608,24 +927,27 @@ function RecruitMainChoice:initialize(x)
     -- adjust if not in dungeon
     if RogueEssence.GameManager.Instance.CurrentScene ~= RogueEssence.Dungeon.DungeonScene.Instance then
         text1 = "Dungeon"
-        enabled1 = REC_LIST.hasVisitedValidDungeons()
+        enabled1 = RECRUIT_LIST.hasVisitedValidDungeons()
         fn1 = function() _MENU:AddMenu(RecruitDungeonChoice:new().menu, false) end
         enabled4 = true
     end
 
+    local info_list = RECRUIT_LIST.info_list
+    if DiagManager.Instance.DevMode then table.insert(info_list, RECRUIT_LIST.dev_RecruitFilter) end
+
     local options = {
         {text1, enabled1, fn1},
-        {"Info",   true, function() _MENU:AddMenu(RecruitTextShowMenu:new(REC_LIST.info_list_title, REC_LIST.info_list).menu, false) end},
-        {"Colors", true, function() _MENU:AddMenu(RecruitTextShowMenu:new(REC_LIST.info_colors_title, REC_LIST.info_colors).menu, false) end},
+        {"Info",   true, function() _MENU:AddMenu(RecruitTextShowMenu:new(RECRUIT_LIST.info_list_title, info_list).menu, false) end},
+        {"Colors", true, function() _MENU:AddMenu(RecruitTextShowMenu:new(RECRUIT_LIST.info_colors_title, RECRUIT_LIST.info_colors).menu, false) end},
         {"Options", enabled4, function() _MENU:AddMenu(RecruitOptionsChoice:new(x, 46).menu, true) end}
     }
     self.menu = RogueEssence.Menu.ScriptableSingleStripMenu(x, 46, 64, options, 0, function() _GAME:SE("Menu/Cancel"); _MENU:RemoveMenu() end)
 end
 
 -- -----------------------------------------------
--- Recruitment List Colors Menu
+-- Recruitment Text Show Menu
 -- -----------------------------------------------
--- Explains the various colors to the player
+-- Shows text and divides it in multiple pages
 RecruitTextShowMenu = Class('RecruitTextShowMenu')
 
 function RecruitTextShowMenu:initialize(title, lines)
@@ -705,9 +1027,9 @@ function RecruitTextShowMenu:Update(input)
 end
 
 -- -----------------------------------------------
--- Recruitment List Main Menu
+-- Recruitment List Options Choice
 -- -----------------------------------------------
--- Main menu for the Recruitment List mod. Accessible only in Ground maps
+-- Small menu that allows toggling the mod's options. Accessible only in Ground maps
 
 RecruitOptionsChoice = Class('RecruitOptionsChoice')
 
@@ -718,25 +1040,31 @@ function RecruitOptionsChoice:initialize(x, y)
         x = x,
         y = y
     }
-    local xx = self.parent_bounds.x+70
-    local yy = self.parent_bounds.y+14*3
-    local spoiler = "Off"
-    if REC_LIST.spoilerMode() then spoiler = "[color=#FFFF00]On[color]" end
-    local text = "Spoiler Mode: "..spoiler
+    local off = "Off"
+    local on = "[color=#FFFF00]On[color]"
+--    local text1 = "Recruit Filter: "..RECRUIT_LIST.tri(RECRUIT_LIST.showUnrecruitable(), off, on)
+    local text2 = "Spoiler Mode: "..RECRUIT_LIST.tri(RECRUIT_LIST.spoilerMode(), on, off)
     local options = {
-        {text, true, function() self:ToggleSpoilerMode() end}
+--        {text1, true, function() self:ToggleShowUnrecruitable() end},
+        {text2, true, function() self:ToggleSpoilerMode() end}
     }
-    self.menu = RogueEssence.Menu.ScriptableSingleStripMenu(xx,yy, 64, options, 0, function() _GAME:SE("Menu/Cancel"); _MENU:RemoveMenu() end)
+    local xx = self.parent_bounds.x+70
+    local yy = self.parent_bounds.y+14*(4-#options)
+
+    self.menu = RogueEssence.Menu.ScriptableSingleStripMenu(xx,yy, 64, options, #options-1, function() _GAME:SE("Menu/Cancel"); _MENU:RemoveMenu() end)
 end
 
 function RecruitOptionsChoice:ToggleSpoilerMode()
-    if REC_LIST.spoilerMode() then SV.Services.RecruitList_spoiler_mode = false
-    else SV.Services.RecruitList_spoiler_mode = true
-    end
+    RECRUIT_LIST.toggleSpoilerMode()
     _MENU:RemoveMenu()
-    _MENU:AddMenu(RecruitOptionsChoice:new(self.parent_bounds.x, self.parent_bounds.y).menu, true)
+    _MENU:AddMenu(RecruitOptionsChoice:new(self.parent_bounds.x, self.parent_bounds.y, self.CurrentChoice).menu, true)
 end
 
+function RecruitOptionsChoice:ToggleShowUnrecruitable()
+    RECRUIT_LIST.toggleShowUnrecruitable()
+    _MENU:RemoveMenu()
+    _MENU:AddMenu(RecruitOptionsChoice:new(self.parent_bounds.x, self.parent_bounds.y, self.CurrentChoice).menu, true)
+end
 
 -- -----------------------------------------------
 -- Recruitment List Dungeon Choice Menu
@@ -748,11 +1076,12 @@ RecruitDungeonChoice = Class('RecruitDungeonChoice')
 function RecruitDungeonChoice:initialize()
     local exit_fn = function() _GAME:SE("Menu/Cancel"); _MENU:RemoveMenu() end
 
-    self.entries = SV.Services.RecruitList_DungeonOrder
+    self.entries = RECRUIT_LIST.getDungeonOrder()
 
     local choices = {}
     for _,entry in pairs(self.entries) do
-        local zone_name = entry.name
+        local completed = RECRUIT_LIST.getSegmentData(entry.zone,0).completed
+        local zone_name = "[color="..RECRUIT_LIST.tri(completed, "#FFC663", "#00FFFF").."]"..entry.name.."[color]"
         table.insert(choices, RogueEssence.Menu.MenuTextChoice(zone_name, function() self:chooseNextMenu(entry.zone) end))
     end
 
@@ -761,15 +1090,11 @@ function RecruitDungeonChoice:initialize()
 end
 
 function RecruitDungeonChoice:chooseNextMenu(zone)
-    local segments = REC_LIST.getValidSegments(zone)
+    local segments = RECRUIT_LIST.getValidSegments(zone)
     if #segments < 2 then
         local segment = segments[1]
-        local title = "[color=#FFC663]"..segment.name
-        local max_fl = SV.Services.RecruitList[zone][segment.id]
-        if max_fl < segment.length then
-            title = title.." (Up to "..max_fl.."F)"
-        end
-        title = title.."[color]"
+        local max_fl = RECRUIT_LIST.getFloorsCleared(zone, segment.id)
+        local title = RECRUIT_LIST.tri(segment.completed,"[color=#FFC663]"..segment.name.."[color]","[color=#00FFFF]"..segment.name.." (Up to "..max_fl.."F)[color]")
         _MENU:AddMenu(RecruitmentListMenu:new(title, zone, segment.id).menu, false)
     else
         _MENU:AddMenu(RecruitSegmentChoice:new(zone, segments).menu, true)
@@ -787,18 +1112,36 @@ RecruitSegmentChoice = Class('RecruitSegmentChoice')
 function RecruitSegmentChoice:initialize(zone, segments)
     assert(self, "RecruitSegmentChoice:initialize(): self is nil!")
     local options = {}
+    local segments_data = {}
 
+    -- construct data and text
     for _,segment in pairs(segments) do
-        local text = segment.name
-        local title = "[color=#FFC663]"..text
-        local max_fl = SV.Services.RecruitList[zone][segment.id]
-        if max_fl < segment.length then
+        local text = "[color="..RECRUIT_LIST.tri(segment.completed,"#FFC663","#00FFFF").."]"..segment.name
+        local title = text
+        local max_fl = RECRUIT_LIST.getFloorsCleared(zone, segment.id)
+        if not segment.completed then
             title = title.." (Up to "..max_fl.."F)"
         end
         title = title.."[color]"
-        local func = function() _MENU:AddMenu(RecruitmentListMenu:new(title, zone, segment.id).menu, false) end
+        text = text.."[color]"
+        local entry = {
+            id = segment.id,
+            title = title,
+            option = text
+        }
+        table.insert(segments_data, entry)
+    end
 
-        table.insert(options, RogueEssence.Menu.MenuTextChoice("[color=#FFC663]"..text.."[color]", func))
+    -- sort by segment id
+    table.sort(segments_data, function (a, b)
+        return a.id < b.id
+    end)
+
+    -- add to menu
+    for _, entry in pairs(segments_data) do
+        local func = function() _MENU:AddMenu(RecruitmentListMenu:new(entry.title, zone, entry.id).menu, false) end
+
+        table.insert(options, RogueEssence.Menu.MenuTextChoice(entry.option, func))
     end
 
     self.menu = RogueEssence.Menu.ScriptableSingleStripMenu(148, 32, 128, options, 0, function() _GAME:SE("Menu/Cancel"); _MENU:RemoveMenu() end)
