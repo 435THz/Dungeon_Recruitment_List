@@ -26,7 +26,7 @@ list of all Dungeons you have even just partially explored. Choose
 one, and the game will show you all Pokémon that can be recruited
 in the portion of the dungeon you have explored and where to find
 them. Just be mindful: this can be a slow process, and the bigger
-dungeons can take quite a while to load.
+dungeons can take some seconds to load.
     - **List**: Choose this option and the game will show you the
 list of all pokémon that are or can appear on your current floor.
 Pokémon that can spawn but you have never met yet will be listed
