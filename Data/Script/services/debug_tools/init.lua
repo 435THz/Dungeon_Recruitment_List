@@ -214,25 +214,24 @@ function DebugTools:OnUpgrade()
         end
     end
 
-    -- main thresholds
-    local v2_0 = {2,0}
-    local v2_1 = {2,1}
-
     -- update dungeon list data
-    if old_version.Major < v2_1[1] or (old_version.Major == v2_1[1] and old_version.Minor < v2_1[2]) then
-        local list =  RECRUIT_LIST.getDungeonListSV()
+    local list =  RECRUIT_LIST.getDungeonListSV()
+    if old_version.Major < 2 or (old_version.Major == 2 and old_version.Minor < 2) then
+        SV.Services.RecruitList_DungeonOrder = {}
         for zone, zone_data in pairs(list) do
             for segment, _ in pairs(zone_data) do
-                if old_version.Major < v2_0[1] or (old_version.Major == v2_0[1] and old_version.Minor < v2_0[2]) then
+                if old_version.Major < 2 or (old_version.Major == 2 and old_version.Minor < 0) then
                     RECRUIT_LIST.generateDungeonListSV(zone, segment)
-                elseif old_version.Major < v2_1[1] or (old_version.Major == v2_1[1] and old_version.Minor < v2_1[2]) then
+                else
                     RECRUIT_LIST.updateSegmentName(zone, segment)
                 end
+                RECRUIT_LIST.markAsExplored(zone, segment)
             end
         end
     end
+
     -- update dungeon order data
-    if old_version.Major < v2_0[1] or (old_version.Major == v2_0[1] and old_version.Minor < v2_0[2]) then
+    if old_version.Major < 2 or (old_version.Major == 2 and old_version.Minor < 0) then
         local order = RECRUIT_LIST.getDungeonOrder()
         for _, entry in pairs(order) do
             if list[entry.zone] then
