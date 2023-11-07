@@ -19,7 +19,7 @@ This mod adds a Recruits option to the game's Others menu.
 This new sub-menu contains 4 more options:
 
 1. **Dungeons/List**: The top option changes depending on your
-location. It will be "List" when  inside a dungeon, and "Dungeons"
+location. It will be "List" when inside a dungeon, and "Dungeons"
 outside.
     - **Dungeons**: When choosing this option, the game will load a
 list of all Dungeons you have even just partially explored. Choose
@@ -39,7 +39,10 @@ in-game and in a more compact format.
 3. **Colors**: Lists the various colors used in the mod to 
 differentiate which pokémon have already been recruited and which ones
 do or do not respawn upon defeat.
-4. **Options**: Displays a toggle option to activate the mod's
-*Spoiler Mode*. If *Spoiler Mode* is on, then you will be unable to
-see the current floor's spawn list if it's your first visit.
+4. **Options**: Displays a toggle option for the mod's
+*Spoiler Mode* and *Icon Mode*. If *Spoiler Mode* is on, then you
+will be unable to see the current floor's spawn list if it's your
+first visit, and if *Icon Mode* is on, the list will also use special
+icon markers to distinguish between caught, non-caught and special 
+spawning pokémon.
 This option can only be accessed outside of dungeons.

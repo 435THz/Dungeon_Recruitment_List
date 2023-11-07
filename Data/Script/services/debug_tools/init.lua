@@ -204,31 +204,52 @@ end
 function DebugTools:OnUpgrade()
     assert(self, 'DebugTools:OnUpgrade() : self is null!')
     PrintInfo("RecruitList =>> Loading version")
-
-    -- update dungeon list data
-    local list =  RECRUIT_LIST.getDungeonListSV()
-    for zone, zone_data in pairs(list) do
-        for segment, _ in pairs(zone_data) do
-            RECRUIT_LIST.generateDungeonListSV(zone, segment)
+    local old_version = {Major = 0, Minor = 0}
+    -- get old version
+    for i=0, _DATA.Save.Mods.Count-1, 1 do
+        local mod = _DATA.Save.Mods[i]
+        if mod.Name == "Dungeon Recruitment List" then
+            old_version = mod.Version
+            break
         end
     end
-    -- update dungeon order data
-    local order = RECRUIT_LIST.getDungeonOrder()
-    for _, entry in pairs(order) do
-        if list[entry.zone] then
-            for segment, _ in pairs(list[entry.zone]) do
-                RECRUIT_LIST.markAsExplored(entry.zone, segment)
+
+    -- main thresholds
+    local v2_0 = {2,0}
+    local v2_1 = {2,1}
+
+    -- update dungeon list data
+    if old_version.Major < v2_1[1] or (old_version.Major == v2_1[1] and old_version.Minor < v2_1[2]) then
+        local list =  RECRUIT_LIST.getDungeonListSV()
+        for zone, zone_data in pairs(list) do
+            for segment, _ in pairs(zone_data) do
+                if old_version.Major < v2_0[1] or (old_version.Major == v2_0[1] and old_version.Minor < v2_0[2]) then
+                    RECRUIT_LIST.generateDungeonListSV(zone, segment)
+                elseif old_version.Major < v2_1[1] or (old_version.Major == v2_1[1] and old_version.Minor < v2_1[2]) then
+                    RECRUIT_LIST.updateSegmentName(zone, segment)
+                end
             end
         end
     end
+    -- update dungeon order data
+    if old_version.Major < v2_0[1] or (old_version.Major == v2_0[1] and old_version.Minor < v2_0[2]) then
+        local order = RECRUIT_LIST.getDungeonOrder()
+        for _, entry in pairs(order) do
+            if list[entry.zone] then
+                for segment, _ in pairs(list[entry.zone]) do
+                    RECRUIT_LIST.markAsExplored(entry.zone, segment)
+                end
+            end
+        end
 
-    -- add all completed dungeons
-    for entry in luanet.each(_DATA.Save.DungeonUnlocks) do
-        if entry.Value == RogueEssence.Data.GameProgress.UnlockState.Completed and
-                not RECRUIT_LIST.segmentDataExists(entry.Key, 0) then
-            local length = RECRUIT_LIST.getSegmentData(entry.Key, 0).totalFloors
-            RECRUIT_LIST.updateFloorsCleared(entry.Key,0, length)
-            RECRUIT_LIST.markAsExplored(entry.Key, 0)
+        -- add all completed dungeons
+        for entry in luanet.each(_DATA.Save.DungeonUnlocks) do
+            if entry.Value == RogueEssence.Data.GameProgress.UnlockState.Completed and
+                    not RECRUIT_LIST.segmentDataExists(entry.Key, 0) then
+                local length = RECRUIT_LIST.getSegmentData(entry.Key, 0).totalFloors
+                RECRUIT_LIST.updateFloorsCleared(entry.Key,0, length)
+                RECRUIT_LIST.markAsExplored(entry.Key, 0)
+            end
         end
     end
 

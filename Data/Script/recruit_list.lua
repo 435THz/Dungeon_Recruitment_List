@@ -257,22 +257,48 @@ function RECRUIT_LIST.generateDungeonListSV(zone, segment)
             floorsCleared = defaultFloor,           -- number of floors cleared in the dungeon
             totalFloors = segment_data.FloorCount,  -- total amount of floors in this segment
             completed = false,                      -- true if the dungeon has been completed
-            name = "Segment "..tostring(segment)    -- segment display name
+            name = "Segment "..tostring(segment),   -- segment display name
         }
-        -- look for a title property to extract the name from
-        local segSteps = segment_data.ZoneSteps
-        for j = 0, segSteps.Count-1, 1 do
-            local step = segSteps[j]
-            if RECRUIT_LIST.getClass(step) == "PMDC.LevelGen.FloorNameDropZoneStep" then
-                local name = step.Name:ToLocal()
-                for a in name:gmatch(("[^\r\n]+")) do
-                    SV.Services.RecruitList[zone][segment].name = a
-                    break
-                end
-                break
+
+        local name = RECRUIT_LIST.build_segment_name(segment_data)
+        SV.Services.RecruitList[zone][segment].name = name
+    end
+end
+
+-- returns the name of the provided segment
+function RECRUIT_LIST.build_segment_name(segment_data)
+    local segSteps = segment_data.ZoneSteps
+    local sub_name = {}
+    local exit = false
+    -- look for a title property to extract the name from
+    for j = 0, segSteps.Count-1, 1 do
+        local step = segSteps[j]
+        if RECRUIT_LIST.getClass(step) == "PMDC.LevelGen.FloorNameDropZoneStep" then
+            exit = true
+            local name = step.Name:ToLocal()
+            for substr in name:gmatch(("[^\r\n]+")) do
+                table.insert(sub_name,substr)
             end
         end
+        if exit then break end
     end
+
+    local stringbuild = sub_name[1] --no i don't come from Java as well what makes you think that
+    -- build the name out of the found property
+    for i=2, #sub_name, 1 do
+        -- look for a floor counter in this string piece
+        local result = string.match(sub_name[i], "(%a?){0}")
+        if result == nil then -- if not found
+            stringbuild = stringbuild.." "..sub_name[i] -- add to the name string
+        end
+    end
+    return stringbuild
+end
+
+function RECRUIT_LIST.updateSegmentName(zone, segment)
+    local segment_data = _DATA:GetZone(zone).Segments[segment]
+    local name = RECRUIT_LIST.build_segment_name(segment_data)
+    SV.Services.RecruitList[zone][segment].name = name
 end
 
 -- Returns the basic dungeon list data structure
@@ -382,11 +408,13 @@ function RECRUIT_LIST.markAsExplored(zone, segment)
         --add to list if not already present
         for i=1, #RECRUIT_LIST.getDungeonOrder(), 1 do
             local other = RECRUIT_LIST.getDungeonOrder()[i]
+            -- if found then update data
             if entry.zone == other.zone then
                 other.name = entry.name -- update name data if necessary
                 other.length = zone_data:GenerateEntrySummary().CountedFloors --fix for old summary error
                 return
             end
+            -- if not found then add to list
             if RECRUIT_LIST.sortZones(entry, other) then
                 table.insert(RECRUIT_LIST.getDungeonOrder(), i, entry)
                 return
@@ -869,6 +897,10 @@ function RecruitmentListMenu:initialize(title, zone, segment)
     self.fullDungeon_segment = segment
     if zone and segment~=nil then
         self.fullDungeon = true
+    else
+        local loc = RECRUIT_LIST.getCurrentMap()
+        self.fullDungeon_zone = loc.zone
+        self.fullDungeon_segment = loc.segment
     end
 
     self.ENTRY_LINES = 10
@@ -1020,7 +1052,7 @@ function RecruitMainChoice:initialize(x)
     end
 
     local info_list = RECRUIT_LIST.info_list --TODO check multiple opening oh god please do not add permanently
-    if DiagManager.Instance.DevMode then table.insert(info_list, RECRUIT_LIST.dev_RecruitFilter[RECRUIT_LIST.tri(RECRUIT_LIST.iconMode(),1,2)]) end
+    if RECRUIT_LIST.showUnrecruitable() then table.insert(info_list, RECRUIT_LIST.dev_RecruitFilter[RECRUIT_LIST.tri(RECRUIT_LIST.iconMode(),1,2)]) end
 
     local color_list = RECRUIT_LIST.tri(RECRUIT_LIST.iconMode(),RECRUIT_LIST.info_colors,RECRUIT_LIST.info_colors_iconless)
 
