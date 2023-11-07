@@ -436,7 +436,7 @@ function RECRUIT_LIST.sortZones(a, b)
     -- order non-level-reset dungeons by ascending recommended level
     if not a.cap and a.level ~= b.level then return a.level < b.level end
     -- order dungeons by ascending length
-    if a.length ~= b.length then return not (a.length < b.length) end
+    if a.length ~= b.length then return a.length < b.length end
     -- order dungeons alphabetically
     return a.zone < b.zone
 end
