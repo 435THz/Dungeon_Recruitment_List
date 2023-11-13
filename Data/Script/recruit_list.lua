@@ -17,13 +17,13 @@ RECRUIT_LIST.unrecruitable_not_seen =  1
 RECRUIT_LIST.not_seen =                2
 RECRUIT_LIST.unrecruitable =           3
 RECRUIT_LIST.seen =                    4
-RECRUIT_LIST.floor_seen =              5
+RECRUIT_LIST.floor_seen =              5  --TODO we just keep this for the future
 RECRUIT_LIST.extra_seen =              6
 RECRUIT_LIST.obtained =                7
-RECRUIT_LIST.floor_obtained =          8
+RECRUIT_LIST.floor_obtained =          8  --TODO we just keep this for the future
 RECRUIT_LIST.extra_obtained =          9
 RECRUIT_LIST.obtainedMultiForm =       10
-RECRUIT_LIST.floor_obtainedMultiForm = 11
+RECRUIT_LIST.floor_obtainedMultiForm = 11 --TODO we just keep this for the future
 RECRUIT_LIST.extra_obtainedMultiForm = 12
 
 -- Mode colors
@@ -70,7 +70,7 @@ RECRUIT_LIST.info_list = {
         "scanned, and the List will not only contain all",
         "species that can spawn naturally in there, but",
         "also all Pokémon that are currently on the floor",
-        "but are not supposed to appear normally."--[[.." If a",]] -- TODO re-insert explanation if fixed
+        "but are not supposed to appear normally."--[[.." If a",]] --TODO we just keep this for the future
 --        "Pokémon is marked with a \"*\", that means it can",
 --        "spawn on the floor but it is not guaranteed to,",
 --        "and that it will not respawn upon defeat."
@@ -126,7 +126,7 @@ RECRUIT_LIST.dev_RecruitFilter = {
         "appear [color=#989898]greyed out[color] in the [color=#00FFFF]Recruitment List[color]."
     }
 }
--- Colors menu content --TODO test paging
+-- Colors menu content
 RECRUIT_LIST.info_colors = {
     -- page 1
     {
@@ -251,7 +251,7 @@ function RECRUIT_LIST.generateDungeonListSV(zone, segment)
     if not SV.Services.RecruitList[zone][segment] then
         local segment_data = _DATA:GetZone(zone).Segments[segment]
         SV.Services.RecruitList[zone][segment] = {
-            --TODO see if "special" is needed, aka if reading floor data is too impactful on performance. Can't until fix
+            --TODO we just keep this for the future
 --            special = {},                           -- {species -> species} list of pokémon to be listed with no specific floor, ordered by dex number.
             reload = false,                         -- if true, need to reload list. useless if list does not exist
             floorsCleared = defaultFloor,           -- number of floors cleared in the dungeon
@@ -349,12 +349,12 @@ function RECRUIT_LIST.markForUpdate(zone, segment)
     SV.Services.RecruitList[zone][segment].reload = true
 end
 
--- Adds a new Pokémon to the segment's extra recruit list TODO check if needed
-function RECRUIT_LIST.registerExtraRecruit(zone, segment, monster)
+-- Adds a new Pokémon to the segment's extra recruit list TODO we just keep this for the future
+--[[function RECRUIT_LIST.registerExtraRecruit(zone, segment, monster)
     local data = RECRUIT_LIST.getSegmentData(zone, segment)
     if data.special[monster] then return end -- discard if not new
     data.special[monster] = monster
-end
+end]]
 
 -- Returns a segment's spawn list data structure
 function RECRUIT_LIST.getSegmentData(zone, segment)
@@ -467,7 +467,7 @@ function RECRUIT_LIST.getCurrentMap()
     return mapData
 end
 
--- TODO remove in final version
+-- TODO remove in final version... or not
 function RL_printall(table, level, root)
     if root == nil then print(" ") end
 
@@ -726,38 +726,6 @@ function RECRUIT_LIST.compileFloorList()
         end
     end
 
-    --check the floor-specific spawn data
-    local loc = RECRUIT_LIST.getCurrentMap()
-    local segment_data = _DATA:GetZone(loc.zone).Segments[loc.segment]
-    local floor_data
-    if RECRUIT_LIST.getClass(segment_data) == "RogueEssence.LevelGen.SingularSegment" then
-        floor_data = segment_data.BaseFloor
-    else
-        floor_data = segment_data.Floors[loc.floor-1]
-    end
-    local floor_spawns = RECRUIT_LIST.recursive_check_spawn_data(floor_data, {})
-    for _, elem in pairs(floor_spawns) do
-        local state = _DATA.Save:GetMonsterUnlock(elem)
-        local mode = RECRUIT_LIST.not_seen -- default is to "???" respawning mons if unknown
-
-        -- check if the mon has been seen or obtained
-        if state == RogueEssence.Data.GameProgress.UnlockState.Discovered then
-            mode = RECRUIT_LIST.floor_seen
-        elseif state == RogueEssence.Data.GameProgress.UnlockState.Completed then
-            if RECRUIT_LIST.check_multi_form(elem) then
-                mode = RECRUIT_LIST.floor_obtainedMultiForm
-            else
-                mode = RECRUIT_LIST.floor_obtained
-            end
-        end
-
-        -- add the member and its display mode to the list
-        if mode> RECRUIT_LIST.hide and not list.entries[elem] then
-            table.insert(list.keys, elem)
-            list.entries[elem] = mode
-        end
-    end
-
     -- sort spawn list
     table.sort(list.keys, function (a, b)
         return _DATA:GetMonster(a).IndexNum < _DATA:GetMonster(b).IndexNum
@@ -817,58 +785,6 @@ function RECRUIT_LIST.check_multi_form(monster)
     return false
 end
 
--- Scans for non-respawning spawn list members
--- Goes into recursion for ChanceFloorGen floor plans. Nothing shall be left unchecked.
-function RECRUIT_LIST.recursive_check_spawn_data(data, list)
-    if RECRUIT_LIST.getClass(data) == "RogueEssence.LevelGen.ChanceFloorGen" then
-        for i=0, data.Spawn.Count-1, 1 do
-            RECRUIT_LIST.recursive_check_spawn_data(data:GetSpawn(i), list)
-        end
-    else
-        -- TODO hhhhhhhhhh
-        --[[for step in luanet.each(data.GenSteps:GetPriorities()) do
-            print(RECRUIT_LIST.getClass(step))
-        end
-        --[[    if RECRUIT_LIST.getClass(step) == "RogueEssence.LevelGen.MobSpawnStep`1" then --RE.LG.MobSpawnStep`1
-                local spawns = step.Spawns  -- SpawnList<TeamSpawner>
-                for i = 0, spawns.Count-1, 1 do
-                    local spawnList = spawns:GetSpawn(i):GetPossibleSpawns()
-                    for j = 0, spawnList.Count-1, 1 do
-
-                        -- TODO if fixed, add show unrecruitables check
-                        -- check if the mon is recruitable
-                        local features = spawnList:GetSpawn(j).SpawnFeatures
-                        local recruitable = true
-                        for f = 0, features.Count-1, 1 do
-                            if RECRUIT_LIST.getClass(features[f]) == "PMDC.LevelGen.MobSpawnUnrecruitable" then
-                                recruitable = false
-                            end
-                        end
-                        if recruitable then
-                            local species = spawnList:GetSpawn(j).BaseForm.Species
-                            table.insert(list, species)
-                        end
-                    end
-                end
-            elseif RECRUIT_LIST.getClass(step):match("Place[A-za-z0-9_]*MobsStep`%d") then
-                if not step.Spawn.Ally then
-                    local spawns = step.Spawn:GetSpawns() --List<RE.Dung.Team>
-                    for i = 0, spawns.Count-1, 1 do
-                        local team = spawns[i].Players    --EventedList<Character>
-                        for j = 0, team.Count-1, 1 do
-                            if not team[j].Unrecruitable then -- TODO if fixed, add show unrecruitables check
-                                local species = team[j].BaseForm.Species
-                                table.insert(list, species)
-                            end
-                        end
-                    end
-                end
-            end
-        end]]--
-    end
-    return list
-end
-
 -- Returns the class of an object as string. Useful to extract and check C# class names
 function RECRUIT_LIST.getClass(csobject)
     if not csobject then return "nil" end
@@ -916,7 +832,7 @@ function RecruitmentListMenu:initialize(title, zone, segment)
         self.list = RECRUIT_LIST.compileFloorList()
     end
     self.page = 0
-    self.PAGE_MAX = (#self.list+1)//self.ENTRY_LIMIT
+    self.PAGE_MAX = math.max(0, (#self.list-1)//self.ENTRY_LIMIT)
 
     self:DrawMenu()
 end
@@ -999,11 +915,11 @@ function RecruitmentListMenu:Update(input)
         _MENU:RemoveMenu()
     elseif input.Direction == RogueElements.Dir8.Right then
         if not self.dirPressed then
-            if self.page >= self.PAGE_MAX then
+            if self.PAGE_MAX == 0 then
                 _GAME:SE("Menu/Cancel")
                 self.page = self.PAGE_MAX
             else
-                self.page = self.page +1
+                self.page = (self.page+1) % (self.PAGE_MAX+1)
                 _GAME:SE("Menu/Skip")
                 self:DrawMenu()
             end
@@ -1011,11 +927,11 @@ function RecruitmentListMenu:Update(input)
         end
     elseif input.Direction == RogueElements.Dir8.Left then
         if not self.dirPressed then
-            if self.page <= 0 then
+            if self.PAGE_MAX == 0 then
                 _GAME:SE("Menu/Cancel")
                 self.page = 0
             else
-                self.page = self.page -1
+                self.page = (self.page-1) % (self.PAGE_MAX+1)
                 _GAME:SE("Menu/Skip")
                 self:DrawMenu()
             end
@@ -1029,7 +945,7 @@ end
 -- -----------------------------------------------
 -- Recruitment List Main Menu
 -- -----------------------------------------------
--- Main menu for the Recruitment List mod. Accessible only in Ground maps
+-- Main menu for the Recruitment List mod.
 
 RecruitMainChoice = Class('RecruitMainChoice')
 
@@ -1051,7 +967,10 @@ function RecruitMainChoice:initialize(x)
         enabled4 = true
     end
 
-    local info_list = RECRUIT_LIST.info_list --TODO check multiple opening oh god please do not add permanently
+    local info_list = {}
+    for i = 1, #RECRUIT_LIST.info_list, 1 do
+        table.insert(info_list, RECRUIT_LIST.info_list[i])
+    end
     if RECRUIT_LIST.showUnrecruitable() then table.insert(info_list, RECRUIT_LIST.dev_RecruitFilter[RECRUIT_LIST.tri(RECRUIT_LIST.iconMode(),1,2)]) end
 
     local color_list = RECRUIT_LIST.tri(RECRUIT_LIST.iconMode(),RECRUIT_LIST.info_colors,RECRUIT_LIST.info_colors_iconless)
@@ -1059,7 +978,7 @@ function RecruitMainChoice:initialize(x)
     local options = {
         {text1, enabled1, fn1},
         {"Info",   true, function() _MENU:AddMenu(RecruitTextShowMenu:new(RECRUIT_LIST.info_list_title, info_list).menu, false) end},
-        {"Colors", true, function() _MENU:AddMenu(RecruitTextShowMenu:new(RECRUIT_LIST.info_colors_title, RECRUIT_LIST.info_colors).menu, false) end},
+        {"Colors", true, function() _MENU:AddMenu(RecruitTextShowMenu:new(RECRUIT_LIST.info_colors_title, color_list).menu, false) end},
         {"Options", enabled4, function() _MENU:AddMenu(RecruitOptionsChoice:new(x, 46).menu, true) end}
     }
     self.menu = RogueEssence.Menu.ScriptableSingleStripMenu(x, 46, 64, options, 0, function() _GAME:SE("Menu/Cancel"); _MENU:RemoveMenu() end)
@@ -1111,7 +1030,7 @@ function RecruitTextShowMenu:DrawMenu()
     end
 end
 
-function RecruitTextShowMenu:Update(input)
+function RecruitmentListMenu:Update(input)
     if input:JustPressed(RogueEssence.FrameInput.InputType.Cancel) then
         _GAME:SE("Menu/Cancel")
         _MENU:RemoveMenu()
@@ -1120,11 +1039,11 @@ function RecruitTextShowMenu:Update(input)
         _MENU:RemoveMenu()
     elseif input.Direction == RogueElements.Dir8.Right then
         if not self.dirPressed then
-            if self.page >= self.PAGE_MAX then
+            if self.PAGE_MAX == 0 then
                 _GAME:SE("Menu/Cancel")
                 self.page = self.PAGE_MAX
             else
-                self.page = self.page +1
+                self.page = (self.page+1) % (self.PAGE_MAX+1)
                 _GAME:SE("Menu/Skip")
                 self:DrawMenu()
             end
@@ -1132,11 +1051,11 @@ function RecruitTextShowMenu:Update(input)
         end
     elseif input.Direction == RogueElements.Dir8.Left then
         if not self.dirPressed then
-            if self.page <= 1 then
+            if self.PAGE_MAX == 0 then
                 _GAME:SE("Menu/Cancel")
-                self.page = 1
+                self.page = 0
             else
-                self.page = self.page -1
+                self.page = (self.page-1) % (self.PAGE_MAX+1)
                 _GAME:SE("Menu/Skip")
                 self:DrawMenu()
             end

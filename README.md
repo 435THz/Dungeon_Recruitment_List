@@ -1,22 +1,29 @@
 # Dungeon Recruitment List
 By: MistressNebula
 
-This [PMDO](https://github.com/audinowho/PMDODump/releases) mod adds
-an option to the Others menu that allows players to view the current
-floor or an entire dungeon's spawn list.
-It also shows which Pokémon have already been recruited.
+This [PMDO](https://github.com/audinowho/PMDODump/releases) mod allows
+the player to access the full Recruitment List of explored dungeons,
+accessible from the Others menu while in a Ground Map.
+This list shows all Recruitable Pokémon up to the highest reached
+floor of a dungeon, complete with the exact floor number you can find
+those Pokémon at.
+It even contains some explanation screens and an icon mode.
 
-**Warning**: longer dungeon lists can take a bit to load.
+Using ths mod in dev mode will display unrecruitable Pokémon, as well.
+
+**Warning**: longer dungeon lists can take some seconds to load.
 
 This mod is currently not compatible with
 [Halcyon](https://github.com/Palikadude/Halcyon/releases) and any
 other mod that edits the ```services/debug_tools_init.lua``` file.
 A Halcyon version of this mod *IS* in the works, however, so stay
-tuned for future updates
+tuned for future updates.
 
 ### How the mod operates
-This mod adds a Recruits option to the game's Others menu.
-This new sub-menu contains 4 more options:
+This mod swaps the Recruitment Search option in the game's Others
+with a Recruit one.
+This new sub-menu is also accessible outside of dungeons and contains
+4 more options:
 
 1. **Dungeons/List**: The top option changes depending on your
 location. It will be "List" when inside a dungeon, and "Dungeons"
@@ -28,12 +35,7 @@ in the portion of the dungeon you have explored and where to find
 them. Just be mindful: this can be a slow process, and the bigger
 dungeons can take some seconds to load.
     - **List**: Choose this option and the game will show you the
-list of all pokémon that are or can appear on your current floor.
-Pokémon that can spawn but you have never met yet will be listed
-as a "???". You will also see any recruitable Pokémon that is on
-the floor but is not listed to spawn, as long as you've met their
-species before. These will be marked with a different color and will
-always be placed at the bottom of the list.
+game's regular Recruitment Search screen.
 2. **Info**: Shows what is essentially a recap of this README, but
 in-game and in a more compact format.
 3. **Colors**: Lists the various colors used in the mod to 
