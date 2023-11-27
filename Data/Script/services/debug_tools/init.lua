@@ -22,10 +22,11 @@ end
     DebugTools:__gc()
       DebugTools class gc method
       Essentially called when the garbage collector collects the service.
+	  TODO: Currently causes issues.  wait for Audino to debug later.
   ---------------------------------------------------------------]]
-function DebugTools:__gc()
-    PrintInfo('*****************DebugTools:__gc()')
-end
+--function DebugTools:__gc()
+--  PrintInfo('*****************DebugTools:__gc()')
+--end
 
 --[[---------------------------------------------------------------
     DebugTools:OnInit()
