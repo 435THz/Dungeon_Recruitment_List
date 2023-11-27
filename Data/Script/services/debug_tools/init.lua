@@ -205,7 +205,7 @@ end
 function DebugTools:OnUpgrade()
     assert(self, 'DebugTools:OnUpgrade() : self is null!')
     PrintInfo("RecruitList =>> Loading version")
-    local old_version = {Major = 0, Minor = 0}
+    local old_version = {Major = 0, Minor = 0, Build = 0, Revision = 0}
     -- get old version
     for i=0, _DATA.Save.Mods.Count-1, 1 do
         local mod = _DATA.Save.Mods[i]
@@ -213,6 +213,12 @@ function DebugTools:OnUpgrade()
             old_version = mod.Version
             break
         end
+    end
+
+    --hide accidental dev mode message
+    if old_version.Major < 2 or (old_version.Major == 2 and old_version.Minor < 3) or
+            (old_version.Minor == 3 and old_version.Build < 1) then
+        SV.Services.RecruitList_show_unrecruitable = nil
     end
 
     -- update dungeon list data
