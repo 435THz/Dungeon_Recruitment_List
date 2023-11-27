@@ -201,7 +201,7 @@ end
 -- Returns the current state of Show Unrecruitable
 function RECRUIT_LIST.showUnrecruitable()
     SV.Services = SV.Services or {}
-    if SV.Services.RecruitList_show_unrecruitable == nil then SV.Services.RecruitList_show_unrecruitable = true end
+    if SV.Services.RecruitList_show_unrecruitable == nil then SV.Services.RecruitList_show_unrecruitable = false end
     -- always shows unrecruitable in dev mode
     return SV.Services.RecruitList_show_unrecruitable or RogueEssence.DiagManager.Instance.DevMode
 end
@@ -949,8 +949,9 @@ end
 
 RecruitMainChoice = Class('RecruitMainChoice')
 
-function RecruitMainChoice:initialize(x)
+function RecruitMainChoice:initialize(x, starting_choice)
     assert(self, "RecruitMainChoice:initialize(): self is nil!")
+    if not starting_choice then starting_choice = 0 end
 
     -- set up option 1
     local text1 = "List"
@@ -981,7 +982,7 @@ function RecruitMainChoice:initialize(x)
         {"Colors", true, function() _MENU:AddMenu(RecruitTextShowMenu:new(RECRUIT_LIST.info_colors_title, color_list).menu, false) end},
         {"Options", enabled4, function() _MENU:AddMenu(RecruitOptionsChoice:new(x, 46).menu, true) end}
     }
-    self.menu = RogueEssence.Menu.ScriptableSingleStripMenu(x, 46, 64, options, 0, function() _GAME:SE("Menu/Cancel"); _MENU:RemoveMenu() end)
+    self.menu = RogueEssence.Menu.ScriptableSingleStripMenu(x, 46, 64, options, starting_choice, function() _GAME:SE("Menu/Cancel"); _MENU:RemoveMenu() end)
 end
 
 -- -----------------------------------------------
@@ -1030,7 +1031,7 @@ function RecruitTextShowMenu:DrawMenu()
     end
 end
 
-function RecruitmentListMenu:Update(input)
+function RecruitTextShowMenu:Update(input)
     if input:JustPressed(RogueEssence.FrameInput.InputType.Cancel) then
         _GAME:SE("Menu/Cancel")
         _MENU:RemoveMenu()
@@ -1039,27 +1040,29 @@ function RecruitmentListMenu:Update(input)
         _MENU:RemoveMenu()
     elseif input.Direction == RogueElements.Dir8.Right then
         if not self.dirPressed then
-            if self.PAGE_MAX == 0 then
+            if self.PAGE_MAX == 1 then
                 _GAME:SE("Menu/Cancel")
-                self.page = self.PAGE_MAX
+                self.page = 1
             else
-                self.page = (self.page+1) % (self.PAGE_MAX+1)
+                local p_index = self.page-1
+                self.page = ((p_index+1) % (self.PAGE_MAX))+1
                 _GAME:SE("Menu/Skip")
                 self:DrawMenu()
+                self.dirPressed = true
             end
-            self.dirPressed = true
         end
     elseif input.Direction == RogueElements.Dir8.Left then
         if not self.dirPressed then
-            if self.PAGE_MAX == 0 then
+            if self.PAGE_MAX == 1 then
                 _GAME:SE("Menu/Cancel")
-                self.page = 0
+                self.page = 1
             else
-                self.page = (self.page-1) % (self.PAGE_MAX+1)
+                local p_index = self.page-1
+                self.page = ((p_index-1) % (self.PAGE_MAX))+1
                 _GAME:SE("Menu/Skip")
                 self:DrawMenu()
+                self.dirPressed = true
             end
-            self.dirPressed = true
         end
     elseif input.Direction == RogueElements.Dir8.None then
         self.dirPressed = false
@@ -1097,14 +1100,19 @@ end
 
 function RecruitOptionsChoice:ToggleSpoilerMode()
     RECRUIT_LIST.toggleSpoilerMode()
-    _MENU:RemoveMenu()
-    _MENU:AddMenu(RecruitOptionsChoice:new(self.parent_bounds.x, self.parent_bounds.y, self.menu.CurrentChoice).menu, true)
+    self:reset_contents()
 end
 
 function RecruitOptionsChoice:ToggleIconMode()
     RECRUIT_LIST.toggleIconMode()
-    _MENU:RemoveMenu()
-    _MENU:AddMenu(RecruitOptionsChoice:new(self.parent_bounds.x, self.parent_bounds.y, self.menu.CurrentChoice).menu, true)
+    self:reset_contents()
+end
+
+function RecruitOptionsChoice:reset_contents()
+    _MENU:RemoveMenu() --remove self
+    _MENU:RemoveMenu() --remove parent
+    _MENU:AddMenu(RecruitMainChoice:new(self.parent_bounds.x, 3).menu, true) --refresh parent
+    _MENU:AddMenu(RecruitOptionsChoice:new(self.parent_bounds.x, self.parent_bounds.y, self.menu.CurrentChoice).menu, true) --refresh self
 end
 
 -- -----------------------------------------------

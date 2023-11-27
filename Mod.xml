@@ -6,7 +6,7 @@ It also touches up PMDO's vanilla in-dungeon list.
 Warning: longer full dungeon lists can take a bit to load.</Description>
   <Namespace>recruit_list</Namespace>
   <UUID>72AB260C-8C56-41A9-A439-71087CA12A96</UUID>
-  <Version>2.3</Version>
+  <Version>2.3.1</Version>
   <ModType>Mod</ModType>
   <Relationships>
     <RelatedMod>
