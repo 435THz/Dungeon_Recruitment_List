@@ -1040,19 +1040,29 @@ function RecruitTextShowMenu:Update(input)
         _MENU:RemoveMenu()
     elseif input.Direction == RogueElements.Dir8.Right then
         if not self.dirPressed then
-            local p_index = self.page-1
-            self.page = ((p_index+1) % (self.PAGE_MAX))+1
-            _GAME:SE("Menu/Skip")
-            self:DrawMenu()
-            self.dirPressed = true
+            if self.PAGE_MAX == 1 then
+                _GAME:SE("Menu/Cancel")
+                self.page = 1
+            else
+                local p_index = self.page-1
+                self.page = ((p_index+1) % (self.PAGE_MAX))+1
+                _GAME:SE("Menu/Skip")
+                self:DrawMenu()
+                self.dirPressed = true
+            end
         end
     elseif input.Direction == RogueElements.Dir8.Left then
         if not self.dirPressed then
-            local p_index = self.page-1
-             self.page = ((p_index-1) % (self.PAGE_MAX))+1
-            _GAME:SE("Menu/Skip")
-            self:DrawMenu()
-            self.dirPressed = true
+            if self.PAGE_MAX == 1 then
+                _GAME:SE("Menu/Cancel")
+                self.page = 1
+            else
+                local p_index = self.page-1
+                self.page = ((p_index-1) % (self.PAGE_MAX))+1
+                _GAME:SE("Menu/Skip")
+                self:DrawMenu()
+                self.dirPressed = true
+            end
         end
     elseif input.Direction == RogueElements.Dir8.None then
         self.dirPressed = false
