@@ -71,9 +71,9 @@ RECRUIT_LIST.info_list = {
         "species that can spawn naturally in there, but",
         "also all Pokémon that are currently on the floor",
         "but are not supposed to appear normally."--[[.." If a",]] --TODO we just keep this for the future
---        "Pokémon is marked with a \"*\", that means it can",
+--        "Pokémon is marked with an \"*\", that means it can",
 --        "spawn on the floor but it is not guaranteed to,",
---        "and that it will not respawn upon defeat."
+--        "and it will not respawn upon defeat."
     },
     -- page 3
     {
@@ -671,14 +671,14 @@ end
 -- then pairs them to the display mode that should be used for that mon's name in the menu
 -- Non-respawning mons are always at the end of the list
 function RECRUIT_LIST.compileFloorList()
+    -- abort immediately if we're not inside a dungeon or recruitment is disabled
+    if _DATA.Save.NoRecruiting then return {} end
+    if RogueEssence.GameManager.Instance.CurrentScene ~= RogueEssence.Dungeon.DungeonScene.Instance then return {} end
+
     local list = {
         keys = {},
         entries = {}
     }
-    -- abort immediately if we're not inside a dungeon
-    if RogueEssence.GameManager.Instance.CurrentScene ~= RogueEssence.Dungeon.DungeonScene.Instance then
-        return list
-    end
 
     local map = _ZONE.CurrentMap
     local spawns = map.TeamSpawns
@@ -1135,7 +1135,7 @@ function RecruitDungeonChoice:initialize()
     end
 
     local choices_array = luanet.make_array(RogueEssence.Menu.MenuTextChoice,choices)
-    self.menu = RogueEssence.Menu.CustomMultiPageMenu(RogueElements.Loc(16,16), 128, "Dungeons", choices_array, 0, 10, exit_fn, exit_fn)
+    self.menu = RogueEssence.Menu.ScriptableMultiPageMenu(RogueElements.Loc(16,16), 128, "Dungeons", choices_array, 0, 10, exit_fn, exit_fn)
 end
 
 function RecruitDungeonChoice:chooseNextMenu(zone)

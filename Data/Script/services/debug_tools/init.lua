@@ -73,7 +73,11 @@ end
 function DebugTools:CustomDungeonOthersMenu()
     local menu = RogueEssence.Menu.OthersMenu()
     menu:SetupChoices();
-    menu.Choices:Insert(1, RogueEssence.Menu.MenuTextChoice("Recruits", function () _MENU:AddMenu(RecruitMainChoice:new(menu.Bounds.Width+menu.Bounds.X+2).menu, true) end))
+    local isGround = RogueEssence.GameManager.Instance.CurrentScene == RogueEssence.Ground.GroundScene.Instance
+    local enabled = not isGround or not _DATA.Save.NoRecruiting
+    local color = Microsoft.Xna.Framework.Color.White
+    if not enabled then color = Microsoft.Xna.Framework.Color.Red end
+    menu.Choices:Insert(1, RogueEssence.Menu.MenuTextChoice("Recruits", function () _MENU:AddMenu(RecruitMainChoice:new(menu.Bounds.Width+menu.Bounds.X+2).menu, true) end, enabled, color))
     menu:InitMenu();
     return menu
 end
