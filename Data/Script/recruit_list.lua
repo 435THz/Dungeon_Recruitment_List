@@ -105,9 +105,19 @@ RECRUIT_LIST.info_list = {
         "by default, that uses icons on top of coloring",
         "the various entries of the list.",
         "You can toggle these modes from the Options",
-        "menu, accessible only outside of Dungeons."
+        "menu, accessible only outside of [color=#FFC060]Dungeons[color]."
     }
 }
+RECRUIT_LIST.postgame_message = {
+    "The title of [color=#FFA0FF]Guildmaster[color] grants you the ability",
+    "to see which [color=#FFC060]Dungeons[color] still contain unexplored",
+    "sections. You will not be able to open their",
+    "[color=#00FFFF]Recruitment List[color] until you enter them, though.",
+    "",
+    "This function is only active if [color=#FFFF00]Spoiler Mode[color]",
+    "is turned off."
+}
+
 RECRUIT_LIST.dev_RecruitFilter = {
     -- icon mode
     {
@@ -184,10 +194,16 @@ RECRUIT_LIST.info_colors_iconless = {
 -- -----------------------------------------------
 -- SV structure
 -- -----------------------------------------------
+-- Returns if the game has been completed or not
+function RECRUIT_LIST.gameCompleted()
+    if SV.guildmaster_summit.GameComplete == nil then SV.guildmaster_summit.GameComplete = false end -- if true, hides the recruit list if it's the player's first time on a floor
+    return SV.guildmaster_summit.GameComplete
+end
+
 -- Returns the current state of Spoiler Mode
 function RECRUIT_LIST.spoilerMode()
     SV.Services = SV.Services or {}
-    if SV.Services.RecruitList_spoiler_mode == nil then SV.Services.RecruitList_spoiler_mode = true end -- if true, hides the recruit list if it's the player's first time on a floor
+    if SV.Services.RecruitList_spoiler_mode == nil then SV.Services.RecruitList_spoiler_mode = false end -- if true, hides the recruit list if it's the player's first time on a floor
     return SV.Services.RecruitList_spoiler_mode
 end
 
@@ -491,13 +507,13 @@ function RL_printall(table, level, root)
 end
 
 -- Checks if the specified dungeon segment has been visited and contains spawn data
-function RECRUIT_LIST.isSegmentValid(zone, segment, segmentData)
+function RECRUIT_LIST.isSegmentValid(zone, segment, segmentData, includeNotExplored)
 
     if not segmentData then segmentData = _DATA:GetZone(zone).Segments[segment] end --load data now if not already
 
-    if not SV.Services or not SV.Services.RecruitList or not SV.Services.RecruitList[zone] or not SV.Services.RecruitList[zone][segment] then return false end
+    if not includeNotExplored and (not SV.Services or not SV.Services.RecruitList or not SV.Services.RecruitList[zone] or not SV.Services.RecruitList[zone][segment]) then return false end
 
-    if RECRUIT_LIST.getSegmentData(zone, segment).floorsCleared <= 0 then return false end
+    if not includeNotExplored and RECRUIT_LIST.getSegmentData(zone, segment).floorsCleared <= 0 then return false end
     if RECRUIT_LIST.getSegmentData(zone, segment).special and #RECRUIT_LIST.getSegmentData(zone, segment).special>0 then
         return true
     end
@@ -517,16 +533,33 @@ end
 function RECRUIT_LIST.getValidSegments(zone)
     local list = {}
 
-    local segments = RECRUIT_LIST.getDungeonListSV()[zone]
-    if segments == nil then return list end
-    for i, segment in pairs(segments) do
-        if RECRUIT_LIST.isSegmentValid(zone, i) then
-            local entry = {
-                id = i,
-                name = segment.name,
-                completed = segment.completed
-            }
-            table.insert(list,entry)
+    if not RECRUIT_LIST.gameCompleted() or RECRUIT_LIST.spoilerMode() then
+        local segments = RECRUIT_LIST.getDungeonListSV()[zone]
+        if segments == nil then return list end
+        for i, segment in pairs(segments) do
+            if RECRUIT_LIST.isSegmentValid(zone, i) then
+                local entry = {
+                    id = i,
+                    name = segment.name,
+                    completed = segment.completed,
+                    floorsCleared = segment.floorsCleared
+                }
+                table.insert(list,entry)
+            end
+        end
+    else
+        local segmentsData = _DATA:GetZone(zone).Segments
+        for i=0, segmentsData.Count-1, 1 do
+            local seg_data = RECRUIT_LIST.getSegmentData(zone, i)
+            if RECRUIT_LIST.isSegmentValid(zone, i, nil, true) then
+                local entry = {
+                    id = i,
+                    name = seg_data.name,
+                    completed = seg_data.completed,
+                    floorsCleared = seg_data.floorsCleared
+                }
+                table.insert(list,entry)
+            end
         end
     end
     return list
@@ -972,6 +1005,7 @@ function RecruitMainChoice:initialize(x, starting_choice)
     for i = 1, #RECRUIT_LIST.info_list, 1 do
         table.insert(info_list, RECRUIT_LIST.info_list[i])
     end
+    if RECRUIT_LIST.gameCompleted() then table.insert(info_list, RECRUIT_LIST.postgame_message) end
     if RECRUIT_LIST.showUnrecruitable() then table.insert(info_list, RECRUIT_LIST.dev_RecruitFilter[RECRUIT_LIST.tri(RECRUIT_LIST.iconMode(),1,2)]) end
 
     local color_list = RECRUIT_LIST.tri(RECRUIT_LIST.iconMode(),RECRUIT_LIST.info_colors,RECRUIT_LIST.info_colors_iconless)
@@ -1165,7 +1199,9 @@ function RecruitSegmentChoice:initialize(zone, segments, super_index)
 
     -- construct data and text
     for _,segment in pairs(segments) do
-        local text = "[color="..RECRUIT_LIST.tri(segment.completed,"#FFC663","#00FFFF").."]"..segment.name
+        local enabled = segment.floorsCleared>0
+        local color = RECRUIT_LIST.tri(segment.completed,"#FFC663",RECRUIT_LIST.tri(enabled,"#00FFFF","#FF0000"))
+        local text = "[color="..color.."]"..segment.name
         local title = text
         local max_fl = RECRUIT_LIST.getFloorsCleared(zone, segment.id)
         if not segment.completed then
@@ -1176,7 +1212,8 @@ function RecruitSegmentChoice:initialize(zone, segments, super_index)
         local entry = {
             id = segment.id,
             title = title,
-            option = text
+            option = text,
+            enabled = enabled
         }
         table.insert(segments_data, entry)
     end
@@ -1195,7 +1232,7 @@ function RecruitSegmentChoice:initialize(zone, segments, super_index)
     for _, entry in pairs(segments_data) do
         local func = function() _MENU:AddMenu(RecruitmentListMenu:new(entry.title, zone, entry.id).menu, false) end
 
-        table.insert(options, RogueEssence.Menu.MenuTextChoice(entry.option, func))
+        table.insert(options, RogueEssence.Menu.MenuTextChoice(entry.option, func, entry.enabled, Color.White))
     end
     local starting_choice = RECRUIT_LIST.tri(reverse, #options-1, 0)
 
