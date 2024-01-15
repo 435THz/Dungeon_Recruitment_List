@@ -460,7 +460,7 @@ end
 -- -----------------------------------------------
 -- Functions
 -- -----------------------------------------------
--- Applies a pattern and wraps the supplied monster's mane name with a color bracket.
+-- Applies a pattern and wraps the supplied monster's name with a color bracket.
 -- Color bracket and pattern are corresponding to mode.
 -- Returns both the fully compiled text and the spacing it requires.
 function RECRUIT_LIST.formatName(monster, mode)
@@ -587,7 +587,7 @@ function RECRUIT_LIST.compileFullDungeonList(zone, segment)
                 local spawn = spawnlist:GetSpawn(j).Spawn
                 local entry = {
                     min = range.Min+1,
-                    max = range.Max,
+                    max = math.min(range.Max, segmentData.FloorCount),
                     species = spawn.BaseForm.Species,
                     mode = RECRUIT_LIST.not_seen, -- defaults to "???". this will be calculated later
                 }
@@ -615,7 +615,7 @@ function RECRUIT_LIST.compileFullDungeonList(zone, segment)
 
                     local entry = {
                         min = range.Min+1,
-                        max = range.Max,
+                        max = math.min(range.Max, segmentData.FloorCount),
                         species = spawn.BaseForm.Species,
                         mode = RECRUIT_LIST.not_seen, -- defaults to "???". this will be calculated later
                     }
