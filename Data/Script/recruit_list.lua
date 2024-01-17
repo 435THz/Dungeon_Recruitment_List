@@ -720,41 +720,45 @@ function RECRUIT_LIST.compileFloorList()
     for i = 0, spawns.Count-1, 1 do
         local spawnList = spawns:GetSpawn(i):GetPossibleSpawns()
         for j = 0, spawnList.Count-1, 1 do
-            local member = spawnList:GetSpawn(j).BaseForm.Species
-            local state = _DATA.Save:GetMonsterUnlock(member)
-            local mode = RECRUIT_LIST.not_seen -- default is to "???" respawning mons if unknown
+            local spawn = spawnList:GetSpawn(j)
 
-            -- check if the mon has been seen or obtained
-            if state == RogueEssence.Data.GameProgress.UnlockState.Discovered then
-                mode = RECRUIT_LIST.seen
-            elseif state == RogueEssence.Data.GameProgress.UnlockState.Completed then
-                if RECRUIT_LIST.check_multi_form(member) then
-                    mode = RECRUIT_LIST.obtainedMultiForm --special color for multi-form mons
-                else
-                    mode = RECRUIT_LIST.obtained
-                end
-            end
+            if spawn:CanSpawn() then
+                local member = spawn.BaseForm.Species
+                local state = _DATA.Save:GetMonsterUnlock(member)
+                local mode = RECRUIT_LIST.not_seen -- default is to "???" respawning mons if unknown
 
-            -- check if the mon is recruitable
-            local features = spawnList:GetSpawn(j).SpawnFeatures
-            for f = 0, features.Count-1, 1 do
-                if RECRUIT_LIST.getClass(features[f]) == "PMDC.LevelGen.MobSpawnUnrecruitable" then
-                    if RECRUIT_LIST.showUnrecruitable() then
-                        if mode == RECRUIT_LIST.not_seen then
-                            mode = RECRUIT_LIST.unrecruitable_not_seen
-                        else
-                            mode = RECRUIT_LIST.unrecruitable
-                        end
+                -- check if the mon has been seen or obtained
+                if state == RogueEssence.Data.GameProgress.UnlockState.Discovered then
+                    mode = RECRUIT_LIST.seen
+                elseif state == RogueEssence.Data.GameProgress.UnlockState.Completed then
+                    if RECRUIT_LIST.check_multi_form(member) then
+                        mode = RECRUIT_LIST.obtainedMultiForm --special color for multi-form mons
                     else
-                        mode = RECRUIT_LIST.hide -- do not show in recruit list if cannot recruit
+                        mode = RECRUIT_LIST.obtained
                     end
                 end
-            end
 
-            -- add the member and its display mode to the list
-            if mode > RECRUIT_LIST.hide and not list.entries[member] then
-                table.insert(list.keys, member)
-                list.entries[member] = mode
+                -- check if the mon is recruitable
+                local features = spawn.SpawnFeatures
+                for f = 0, features.Count-1, 1 do
+                    if RECRUIT_LIST.getClass(features[f]) == "PMDC.LevelGen.MobSpawnUnrecruitable" then
+                        if RECRUIT_LIST.showUnrecruitable() then
+                            if mode == RECRUIT_LIST.not_seen then
+                                mode = RECRUIT_LIST.unrecruitable_not_seen
+                            else
+                                mode = RECRUIT_LIST.unrecruitable
+                            end
+                        else
+                            mode = RECRUIT_LIST.hide -- do not show in recruit list if cannot recruit
+                        end
+                    end
+                end
+
+                -- add the member and its display mode to the list
+                if mode > RECRUIT_LIST.hide and not list.entries[member] then
+                    table.insert(list.keys, member)
+                    list.entries[member] = mode
+                end
             end
         end
     end
