@@ -13,6 +13,12 @@ Using ths mod in dev mode will display unrecruitable Pokémon, as well.
 
 **Warning**: longer dungeon lists can take some seconds to load.
 
+**Minor quirk**: If you have played with mods that add dungeons and
+then removed them before installing this mod, the game may throw some
+errors upon loading the save file. Don't worry, though: if it loads,
+it means it worked fine.
+This cannot be solved currently, but will be in future PMDO updates.
+
 This mod is currently not compatible with
 [Halcyon](https://github.com/Palikadude/Halcyon/releases) and any
 other mod that edits the ```services/debug_tools_init.lua``` file.
