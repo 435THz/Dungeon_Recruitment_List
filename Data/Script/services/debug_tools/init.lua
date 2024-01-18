@@ -63,7 +63,7 @@ function DebugTools:OnMenuButtonPressed()
         index = 5
     end
     DebugTools.MainMenu.Choices:RemoveAt(index)
-    DebugTools.MainMenu.Choices:Insert(index, RogueEssence.Menu.MenuTextChoice("Others", function () _MENU:AddMenu(DebugTools:CustomDungeonOthersMenu(), false) end))
+    DebugTools.MainMenu.Choices:Insert(index, RogueEssence.Menu.MenuTextChoice(STRINGS:FormatKey("MENU_OTHERS_TITLE"), function () _MENU:AddMenu(DebugTools:CustomDungeonOthersMenu(), false) end))
 
     DebugTools.MainMenu:SetupTitleAndSummary()
     DebugTools.MainMenu:InitMenu()
@@ -256,9 +256,13 @@ function DebugTools:OnUpgrade()
         for entry in luanet.each(_DATA.Save.DungeonUnlocks) do
             if entry.Value == RogueEssence.Data.GameProgress.UnlockState.Completed and
                     not RECRUIT_LIST.segmentDataExists(entry.Key, 0) then
-                local length = RECRUIT_LIST.getSegmentData(entry.Key, 0).totalFloors
-                RECRUIT_LIST.updateFloorsCleared(entry.Key,0, length)
-                RECRUIT_LIST.markAsExplored(entry.Key, 0)
+
+                local data = RECRUIT_LIST.getSegmentData(entry.Key, 0)
+                if data ~= nil then
+                    local length = data.totalFloors
+                    RECRUIT_LIST.updateFloorsCleared(entry.Key,0, length)
+                    RECRUIT_LIST.markAsExplored(entry.Key, 0)
+                end
             end
         end
     end
