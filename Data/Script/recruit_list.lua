@@ -245,6 +245,18 @@ function RECRUIT_LIST.toggleIconMode()
 end
 
 
+-- Returns true if the string is a valid zone index, false otherwise
+function RECRUIT_LIST.zoneExists(zone)
+    return not not _DATA.DataIndices[RogueEssence.Data.DataManager.DataType.Zone]:ContainsKey(zone)
+end
+
+-- Returns the ZoneEntrySummary associated to the given zone
+function RECRUIT_LIST.getZoneSummary(zone)
+    if RECRUIT_LIST.zoneExists(zone) then
+        return _DATA.DataIndices[RogueEssence.Data.DataManager.DataType.Zone]:Get(zone)
+    end
+    return nil
+end
 
 -- Initializes the basic dungeon list data structure
 function RECRUIT_LIST.generateDungeonListBaseSV()
@@ -255,8 +267,7 @@ end
 -- Initializes the data slot for the supplied segment if not already present
 function RECRUIT_LIST.generateDungeonListSV(zone, segment)
     RECRUIT_LIST.generateDungeonListBaseSV()
-    local zone_data = _DATA:GetZone(zone)
-    if zone_data == nil then return end            -- abort if zone does not exist
+    if not RECRUIT_LIST.zoneExists(zone) then return end            -- abort if zone does not exist
     SV.Services.RecruitList[zone] = SV.Services.RecruitList[zone] or {}
 
     -- update old data if present
@@ -267,7 +278,7 @@ function RECRUIT_LIST.generateDungeonListSV(zone, segment)
     end
 
     if not SV.Services.RecruitList[zone][segment] then
-        local segment_data = zone_data.Segments[segment]
+        local segment_data = _DATA:GetZone(zone).Segments[segment]
         if segment_data == nil then return end         -- abort if segment does not exist
             SV.Services.RecruitList[zone][segment] = {
                 --TODO we just keep this for the future
@@ -315,9 +326,8 @@ function RECRUIT_LIST.build_segment_name(segment_data)
 end
 
 function RECRUIT_LIST.updateSegmentName(zone, segment)
-    local zone_data = _DATA:GetZone(zone)
-    if zone_data == nil then return end
-    local segment_data = zone_data.Segments[segment]
+    if not RECRUIT_LIST.zoneExists(zone) then return end
+    local segment_data = _DATA:GetZone(zone).Segments[segment]
     if segment_data == nil then return end
 
     local name = RECRUIT_LIST.build_segment_name(segment_data)
@@ -417,15 +427,15 @@ end
 function RECRUIT_LIST.markAsExplored(zone, segment)
 
     if RECRUIT_LIST.isSegmentValid(zone, segment) then
-        local zone_data = _DATA:GetZone(zone)
-        if zone_data == nil then return false end
+        if not RECRUIT_LIST.zoneExists(zone) then return end
+        local zone_summary = RECRUIT_LIST.getZoneSummary(zone)
 
         local entry = {
             zone = zone,
-            cap = zone_data.LevelCap,
-            level = zone_data.Level,
-            length = zone_data:GenerateEntrySummary().CountedFloors,
-            name = zone_data.Name:ToLocal()
+            cap = zone_summary.LevelCap,
+            level = zone_summary.Level,
+            length = zone_summary.CountedFloors,
+            name = zone_summary.Name:ToLocal()
         }
         --mark as completed if necessary
         if not RECRUIT_LIST.checkFloor(zone, segment, RECRUIT_LIST.getSegmentData(zone, segment).totalFloors) then
@@ -438,7 +448,7 @@ function RECRUIT_LIST.markAsExplored(zone, segment)
             -- if found then update data
             if entry.zone == other.zone then
                 other.name = entry.name -- update name data if necessary
-                other.length = zone_data:GenerateEntrySummary().CountedFloors --fix for old summary error
+                other.length = zone_summary.CountedFloors --fix in case of old summary error
                 return
             end
             -- if not found then add to list
@@ -520,9 +530,8 @@ end
 -- Checks if the specified dungeon segment has been visited and contains spawn data
 function RECRUIT_LIST.isSegmentValid(zone, segment, segmentData, includeNotExplored)
     if not segmentData then                                 --load data now if it was not already done
-        local zone_data = _DATA:GetZone(zone)
-        if zone_data == nil then return false end
-        segmentData = zone_data.Segments[segment]
+        if not RECRUIT_LIST.zoneExists(zone) then return false end
+        segmentData = _DATA:GetZone(zone).Segments[segment]
     end
     if segmentData == nil then return false end
 
@@ -547,6 +556,7 @@ end
 -- Return is a list of tables with properties {int id, string name, boolean completed}
 function RECRUIT_LIST.getValidSegments(zone)
     local list = {}
+    if not RECRUIT_LIST.zoneExists(zone) then return list end
 
     if not RECRUIT_LIST.gameCompleted() or RECRUIT_LIST.spoilerMode() then
         local segments = RECRUIT_LIST.getDungeonListSV()[zone]

@@ -47,6 +47,27 @@ function DebugTools:OnDeinit()
 end
 
 --[[---------------------------------------------------------------
+    DebugTools:OnSaveLoad()
+      When the Continue button is pressed this is called!
+---------------------------------------------------------------]]
+function DebugTools:OnSaveLoad()
+    PrintInfo("\n<!> DebugTools: LoadSavedData..")
+    local lang = STRINGS:LocaleCode()
+    if lang ~= SV.Services.RecruitList_lastLanguage then
+        for _, ordered_zone_data in pairs(RECRUIT_LIST.getDungeonOrder()) do
+            local zone_id = ordered_zone_data.zone
+            ordered_zone_data.name = RECRUIT_LIST.getZoneSummary(zone_id).Name:ToLocal()
+            local zone_data = RECRUIT_LIST.getDungeonListSV()[zone_id]
+            if zone_data then
+                for segment_id, segment_data in pairs(zone_data) do
+                    segment_data.name = RECRUIT_LIST.build_segment_name(_DATA:GetZone(zone_id).Segments[segment_id])
+                end
+            end
+        end
+    end
+end
+
+--[[---------------------------------------------------------------
     DebugTools:OnMenuButtonPressed()
       When the main menu button is pressed or the main menu should be enabled this is called!
       This is called as a coroutine.
@@ -281,9 +302,8 @@ function DebugTools:Subscribe(med)
     med:Subscribe("DebugTools", EngineServiceEvents.LossPenalty,       function(_, args) self.OnLossPenalty(self, args[0]) end )
     med:Subscribe("DebugTools", EngineServiceEvents.DungeonFloorExit,  function(dungeonloc, result) self.OnDungeonFloorEnd(self, dungeonloc, result) end )
     med:Subscribe("DebugTools", EngineServiceEvents.UpgradeSave,       function(mapid) self.OnUpgrade(self) end )
-    --  med:Subscribe("DebugTools", EngineServiceEvents.GraphicsUnload,    function() self.OnGraphicsUnload(self) end )
-    --  med:Subscribe("DebugTools", EngineServiceEvents.Restart,           function() self.OnRestart(self) end )
-end
+    med:Subscribe("DebugTools", EngineServiceEvents.LoadSavedData,     function() self.OnSaveLoad(self) end )
+    end
 
 ---Summary
 -- un-subscribe to all channels this service subscribed to
