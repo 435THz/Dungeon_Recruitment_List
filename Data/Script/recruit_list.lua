@@ -1198,7 +1198,7 @@ function RecruitDungeonChoice:initialize()
     end
 
     local choices_array = luanet.make_array(RogueEssence.Menu.MenuTextChoice,choices)
-    self.menu = RogueEssence.Menu.ScriptableMultiPageMenu(RogueElements.Loc(16,16), 128, "Dungeons", choices_array, 0, 10, exit_fn, exit_fn)
+    self.menu = RogueEssence.Menu.ScriptableMultiPageMenu(RogueElements.Loc(16,16), 144, "Dungeons", choices_array, 0, 10, exit_fn, exit_fn)
 end
 
 function RecruitDungeonChoice:chooseNextMenu(zone)
@@ -1250,12 +1250,11 @@ function RecruitSegmentChoice:initialize(zone, segments, super_index)
     local reverse = false
     local top_slot = super_index
     local bottom_slot = top_slot + #segments_data-1
-    if bottom_slot > 9 then top_slot, reverse = top_slot-#segments_data+1, true end
-    if top_slot<0 then top_slot, reverse = super_index-bottom_slot+9, false end
+    if bottom_slot > 9 then top_slot = top_slot-#segments_data+1 end
+    if top_slot<0 then top_slot = super_index-bottom_slot+9 end
 
     -- sort by segment id
-    if not reverse then table.sort(segments_data, function (a, b) return a.id < b.id end)
-    else table.sort(segments_data, function (a, b) return a.id > b.id end) end
+    table.sort(segments_data, function (a, b) return a.id < b.id end)
 
     -- add to menu
     for _, entry in pairs(segments_data) do
@@ -1263,8 +1262,7 @@ function RecruitSegmentChoice:initialize(zone, segments, super_index)
 
         table.insert(options, RogueEssence.Menu.MenuTextChoice(entry.option, func, entry.enabled, Color.White))
     end
-    local starting_choice = RECRUIT_LIST.tri(reverse, #options-1, 0)
 
     local x = 32+14*top_slot
-    self.menu = RogueEssence.Menu.ScriptableSingleStripMenu(148, x, 128, options, starting_choice, function() _GAME:SE("Menu/Cancel"); _MENU:RemoveMenu() end)
+    self.menu = RogueEssence.Menu.ScriptableSingleStripMenu(162, x, 128, options, 0, function() _GAME:SE("Menu/Cancel"); _MENU:RemoveMenu() end)
 end
