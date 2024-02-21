@@ -1,13 +1,17 @@
 --[[
-    Debug Tools
+    Example Service
+    
+    This is an example to demonstrate how to use the BaseService class to implement a game service.
+    
+    **NOTE:** After declaring you service, you have to include your package inside the main.lua file!
 ]]--
 require 'common'
 require 'services.baseservice'
+require 'mission_gen'
 require 'recruit_list'
 
 --Declare class DebugTools
 local DebugTools = Class('DebugTools', BaseService)
-
 
 --[[---------------------------------------------------------------
     DebugTools:initialize()
@@ -22,7 +26,7 @@ end
     DebugTools:__gc()
       DebugTools class gc method
       Essentially called when the garbage collector collects the service.
-	  TODO: Currently causes issues.  wait for Audino to debug later.
+	  TODO: Currently causes issues.  debug later.
   ---------------------------------------------------------------]]
 --function DebugTools:__gc()
 --  PrintInfo('*****************DebugTools:__gc()')
@@ -34,7 +38,7 @@ end
 ---------------------------------------------------------------]]
 function DebugTools:OnInit()
     assert(self, 'DebugTools:OnInit() : self is null!')
-    PrintInfo("\n<!> DebugTools: Init..")
+    PrintInfo("\n<!> ExampleSvc: Init..")
 end
 
 --[[---------------------------------------------------------------
@@ -43,7 +47,7 @@ end
 ---------------------------------------------------------------]]
 function DebugTools:OnDeinit()
     assert(self, 'DebugTools:OnDeinit() : self is null!')
-    PrintInfo("\n<!> DebugTools: Deinit..")
+    PrintInfo("\n<!> ExampleSvc: Deinit..")
 end
 
 --[[---------------------------------------------------------------
@@ -73,12 +77,12 @@ end
       This is called as a coroutine.
 ---------------------------------------------------------------]]
 function DebugTools:OnMenuButtonPressed()
+    -- TODO: Remove this when the memory leak is fixed or confirmed not a leak
     if DebugTools.MainMenu == nil then
         DebugTools.MainMenu = RogueEssence.Menu.MainMenu()
     end
+
     DebugTools.MainMenu:SetupChoices()
-
-
     local index = 4
     if RogueEssence.GameManager.Instance.CurrentScene == RogueEssence.Dungeon.DungeonScene.Instance then
         index = 5
@@ -86,7 +90,22 @@ function DebugTools:OnMenuButtonPressed()
     DebugTools.MainMenu.Choices:RemoveAt(index)
     DebugTools.MainMenu.Choices:Insert(index, RogueEssence.Menu.MenuTextChoice(STRINGS:FormatKey("MENU_OTHERS_TITLE"), function () _MENU:AddMenu(DebugTools:CustomDungeonOthersMenu(), false) end))
 
+    --Custom menu stuff for jobs.
+    --Check if we're in a dungeon or not. Only do main menu changes outside of a dungeon.
+    if SV.MissionsEnabled and RogueEssence.GameManager.Instance.CurrentScene ~= RogueEssence.Dungeon.DungeonScene.Instance then
+        --not in a dungeon
+        --Add Job List option
+        local taken_count = MISSION_GEN.GetTakenCount()
+        local job_list_color = Color.Red
+        if taken_count > 0 then
+            job_list_color = Color.White
+        end
+
+        DebugTools.MainMenu.Choices:Insert(4, RogueEssence.Menu.MenuTextChoice(Text.FormatKey("MENU_JOBLIST_TITLE"), function () _MENU:AddMenu(BoardMenu:new(COMMON.MISSION_BOARD_TAKEN, nil, DebugTools.MainMenu).menu, false) end, taken_count > 0, job_list_color))
+    end
+
     DebugTools.MainMenu:SetupTitleAndSummary()
+
     DebugTools.MainMenu:InitMenu()
     TASK:WaitTask(_MENU:ProcessMenuCoroutine(DebugTools.MainMenu))
 end
@@ -94,18 +113,23 @@ end
 function DebugTools:CustomDungeonOthersMenu()
     local menu = RogueEssence.Menu.OthersMenu()
     menu:SetupChoices();
+
     local isGround = RogueEssence.GameManager.Instance.CurrentScene == RogueEssence.Ground.GroundScene.Instance
     local enabled = not isGround or not _DATA.Save.NoRecruiting
-    local color = Microsoft.Xna.Framework.Color.White
-    if not enabled then color = Microsoft.Xna.Framework.Color.Red end
+    local color = Color.White
+    if not enabled then color = Color.Red end
     menu.Choices:Insert(1, RogueEssence.Menu.MenuTextChoice("Recruits", function () _MENU:AddMenu(RecruitMainChoice:new(menu.Bounds.Width+menu.Bounds.X+2).menu, true) end, enabled, color))
+
+    if SV.MissionsEnabled and RogueEssence.GameManager.Instance.CurrentScene == RogueEssence.Dungeon.DungeonScene.Instance then
+        menu.Choices:Add(RogueEssence.Menu.MenuTextChoice("Mission Objectives", function () _MENU:AddMenu(DungeonJobList:new().menu, false) end))
+    end
     menu:InitMenu();
     return menu
 end
 
 --[[---------------------------------------------------------------
     DebugTools:OnNewGame()
-      When a new save file is loaded this is called!
+      When a debug save file is loaded this is called!
 ---------------------------------------------------------------]]
 function DebugTools:OnNewGame()
     assert(self, 'DebugTools:OnNewGame() : self is null!')
@@ -125,7 +149,7 @@ function DebugTools:OnNewGame()
         end
         SV.General.Starter = _DATA.Save.ActiveTeam.Players[0].BaseForm
     else
-        PrintInfo("\n<!> DebugTools: Preparing debug save file")
+        PrintInfo("\n<!> ExampleSvc: Preparing debug save file")
         _DATA.Save.ActiveTeam:SetRank("normal")
         _DATA.Save.ActiveTeam.Name = "Debug"
         _DATA.Save.ActiveTeam.Money = 1000
@@ -175,7 +199,6 @@ function DebugTools:OnNewGame()
         SV.General.Starter = _DATA.Save.ActiveTeam.Players[0].BaseForm
     end
 end
-
 
 --[[---------------------------------------------------------------
     DebugTools:OnLossPenalty()
@@ -295,15 +318,15 @@ end
 ---Summary
 -- Subscribe to all channels this service wants callbacks from
 function DebugTools:Subscribe(med)
-    med:Subscribe("DebugTools", EngineServiceEvents.Init,              function() self.OnInit(self) end )
-    med:Subscribe("DebugTools", EngineServiceEvents.Deinit,            function() self.OnDeinit(self) end )
-    med:Subscribe("DebugTools", EngineServiceEvents.MenuButtonPressed, function() self.OnMenuButtonPressed() end )
-    med:Subscribe("DebugTools", EngineServiceEvents.NewGame,           function() self.OnNewGame(self) end )
-    med:Subscribe("DebugTools", EngineServiceEvents.LossPenalty,       function(_, args) self.OnLossPenalty(self, args[0]) end )
+    med:Subscribe("DebugTools", EngineServiceEvents.Init,                function() self.OnInit(self) end )
+    med:Subscribe("DebugTools", EngineServiceEvents.Deinit,              function() self.OnDeinit(self) end )
+    med:Subscribe("DebugTools", EngineServiceEvents.MenuButtonPressed,        function() self.OnMenuButtonPressed() end )
+    med:Subscribe("DebugTools", EngineServiceEvents.NewGame,        function() self.OnNewGame(self) end )
+    med:Subscribe("DebugTools", EngineServiceEvents.LossPenalty,        function(_, args) self.OnLossPenalty(self, args[0]) end )
     med:Subscribe("DebugTools", EngineServiceEvents.DungeonFloorExit,  function(dungeonloc, result) self.OnDungeonFloorEnd(self, dungeonloc, result) end )
     med:Subscribe("DebugTools", EngineServiceEvents.UpgradeSave,       function(mapid) self.OnUpgrade(self) end )
     med:Subscribe("DebugTools", EngineServiceEvents.LoadSavedData,     function() self.OnSaveLoad(self) end )
-    end
+end
 
 ---Summary
 -- un-subscribe to all channels this service subscribed to
