@@ -16,8 +16,6 @@ Using ths mod in dev mode will display unrecruitable Pokémon, as well.
 This mod is currently not compatible with
 [Halcyon](https://github.com/Palikadude/Halcyon/releases) and any
 other mod that edits the ```services/debug_tools_init.lua``` file.
-A Halcyon version of this mod *IS* in the works, however, so stay
-tuned for future updates.
 
 ### How the mod operates
 This mod swaps the Recruitment Search option in the game's Others
