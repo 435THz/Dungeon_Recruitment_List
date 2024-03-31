@@ -5,9 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e0aa1a91-9636-48c8-b9ca-15ab3f4b72a8" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Data/Script/services/debug_tools/init_2.lua" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Data/Script/recruit_list.lua" beforeDir="false" afterPath="$PROJECT_DIR$/Data/Script/recruit_list.lua" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Data/Script/services/debug_tools/init.lua" beforeDir="false" afterPath="$PROJECT_DIR$/Data/Script/services/debug_tools/init.lua" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Mod.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Mod.xml" afterDir="false" />
     </list>
@@ -27,17 +26,18 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "last_opened_file_path": "C:/Users/pc/Documents/PMDOSetup/PMDO/MODS/Dungeon_Recruitment_List/Data/Script/services/debug_tools"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/pc/Documents/PMDOSetup/PMDO/MODS/Dungeon_Recruitment_List/Data/Script&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="C:\Users\pc\Documents\PMDOSetup\PMDO\MODS\Dungeon_Recruitment_List\Data\Script\services\debug_tools" />
       <recent name="C:\Users\pc\Documents\PMDOSetup\PMDO\MODS\Dungeon_Recruitment_List\Data\Script" />
+      <recent name="C:\Users\pc\Documents\PMDOSetup\PMDO\MODS\Dungeon_Recruitment_List\Data\Script\services\recruit_tools" />
+      <recent name="C:\Users\pc\Documents\PMDOSetup\PMDO\MODS\Dungeon_Recruitment_List\Data\Script\services\debug_tools" />
       <recent name="C:\Users\pc\Documents\PMDOSetup\PMDO\MODS\Dungeon_Recruitment_List\Data\Script\services\recruit_service" />
     </key>
   </component>

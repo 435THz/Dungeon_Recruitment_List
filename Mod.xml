@@ -1,12 +1,13 @@
 <Header>
   <Name>Dungeon Recruitment List</Name>
   <Author>MistressNebula</Author>
-  <Description>Implements an out-of-dungeon Recruitment List menu that also keeps track of your progress inside dungeons.
-It also touches up PMDO's vanilla in-dungeon list.
-Warning: longer full dungeon lists can take a bit to load.</Description>
+  <Description>Adds an out-of-dungeon Recruitment List menu that also keeps track of your progress inside dungeons.
+It also touches up the vanilla in-dungeon list.
+Warning: loading long dungeons may be slow.</Description>
   <Namespace>recruit_list</Namespace>
   <UUID>72AB260C-8C56-41A9-A439-71087CA12A96</UUID>
-  <Version>2.6.0</Version>
+  <Version>2.6.1.0</Version>
+  <GameVersion>0.7.25</GameVersion>
   <ModType>Mod</ModType>
   <Relationships>
     <RelatedMod>

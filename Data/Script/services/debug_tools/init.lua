@@ -68,6 +68,7 @@ function DebugTools:OnSaveLoad()
                 end
             end
         end
+        SV.Services.RecruitList_lastLanguage = lang
     end
 end
 
@@ -111,7 +112,11 @@ function DebugTools:OnMenuButtonPressed()
 end
 
 function DebugTools:CustomDungeonOthersMenu()
-    local menu = RogueEssence.Menu.OthersMenu()
+    -- TODO: Remove this when the memory leak is fixed or confirmed not a leak
+    if DebugTools.OthersMenu == nil then
+        DebugTools.OthersMenu = RogueEssence.Menu.OthersMenu()
+    end
+    local menu = DebugTools.OthersMenu;
     menu:SetupChoices();
 
     local isGround = RogueEssence.GameManager.Instance.CurrentScene == RogueEssence.Ground.GroundScene.Instance
