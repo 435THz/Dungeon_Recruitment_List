@@ -6,7 +6,7 @@ It also touches up the vanilla in-dungeon list.
 Warning: loading long dungeons may be slow.</Description>
   <Namespace>recruit_list</Namespace>
   <UUID>72AB260C-8C56-41A9-A439-71087CA12A96</UUID>
-  <Version>2.6.1.1</Version>
+  <Version>3.0.0.0</Version>
   <GameVersion>0.7.25</GameVersion>
   <ModType>Mod</ModType>
   <Relationships>
