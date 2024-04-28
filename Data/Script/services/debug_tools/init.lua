@@ -263,7 +263,7 @@ function DebugTools:OnUpgrade()
     for i=0, _DATA.Save.Mods.Count-1, 1 do
         local mod = _DATA.Save.Mods[i]
         if mod.Name == "Dungeon Recruitment List" then
-            old_version = mod.Version
+            RECRUIT_LIST.version.Major = mod.Version
             break
         end
     end
@@ -284,7 +284,7 @@ function DebugTools:OnUpgrade()
         SV.Services.RecruitList_DungeonOrder = {}
         for zone, zone_data in pairs(list) do
             for segment, _ in pairs(zone_data) do
-                if old_version.Major < 2 or (old_version.Major == 2 and old_version.Minor < 0) then
+                if RECRUIT_LIST.checkMinVersion(2, 0) then
                     RECRUIT_LIST.generateDungeonListSV(zone, segment)
                 else
                     RECRUIT_LIST.updateSegmentName(zone, segment)

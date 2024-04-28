@@ -37,7 +37,7 @@ end
 function RECRUIT_LIST.scannerMode()
     SV.Services = SV.Services or {}
     if SV.Services.RecruitList_scanner_mode == nil then SV.Services.RecruitList_scanner_mode = false end -- if true, allows the player to view the summary of any obtained mon's spawn entry
-    return false -- TODO return SV.Services.RecruitList_scanner_mode
+    return SV.Services.RecruitList_scanner_mode
 end
 
 -- Toggles the current state of Scanner Mode
@@ -367,7 +367,7 @@ function RECRUIT_LIST.getValidSegments(zone)
     local list = {}
     if not RECRUIT_LIST.zoneExists(zone) then return list end
 
-    if not RECRUIT_LIST.gameCompleted() or RECRUIT_LIST.scannerMode() then
+    if not RECRUIT_LIST.gameCompleted() then
         local segments = RECRUIT_LIST.getDungeonListSV()[zone]
         if segments == nil then return list end
         for i, segment in pairs(segments) do
@@ -420,13 +420,19 @@ function RECRUIT_LIST.compileFullDungeonList(zone, segment)
                 local range = spawnlist:GetSpawnRange(j)
                 local spawn = spawnlist:GetSpawn(j).Spawn -- RogueEssence.LevelGen.MobSpawn
                 local entry = {
-                    spawns = {spawn},
-                    min = range.Min+1,
-                    max = math.min(range.Max, segmentData.FloorCount),
+                    spawns = {{
+                        data = spawn,
+                        range = {
+                                      min = range.Min+1,
+                                      max = math.min(range.Max, segmentData.FloorCount)
+                                  }
+                    }},
                     species = spawn.BaseForm.Species,
                     mode = RECRUIT_LIST.not_seen, -- defaults to "???". this will be calculated later
                     -- state is added later
                 }
+                entry.min = entry.spawns[1].range.min
+                entry.max = entry.spawns[1].range.max
                 -- check if the mon is recruitable
                 local recruitable = true
                 local features = spawn.SpawnFeatures
@@ -450,13 +456,19 @@ function RECRUIT_LIST.compileFullDungeonList(zone, segment)
                     local spawn = spawns:GetSpawn(s)
 
                     local entry = {
-                        spawns = {spawn},
-                        min = range.Min+1,
-                        max = math.min(range.Max, segmentData.FloorCount),
+                        spawns = {{
+                            data = spawn,
+                            range = {
+                                    min = range.Min+1,
+                                    max = math.min(range.Max, segmentData.FloorCount)
+                                }
+                        }},
                         species = spawn.BaseForm.Species,
                         mode = RECRUIT_LIST.not_seen, -- defaults to "???". this will be calculated later
                         -- state is added later
                     }
+                    entry.min = entry.spawns.range.min
+                    entry.max = entry.spawns.range.max
                     -- check if the mon is recruitable
                     local recruitable = true
                     local features = spawn.SpawnFeatures
@@ -497,7 +509,7 @@ function RECRUIT_LIST.compileFullDungeonList(zone, segment)
                 local next = entry[i]
                 if current.max+1 >= next.min then
                     current.max = math.max(current.max, next.max)
-                    for _, spawn in pairs(entry) do table.insert(current.spawns, spawn) end
+                    for _, spawn in pairs(next.spawns) do table.insert(current.spawns, spawn) end
                 else
                     table.insert(list,current)
                     current = next
@@ -599,12 +611,12 @@ function RECRUIT_LIST.compileFloorList()
                     if not list.entries[member] then
                         table.insert(list.keys, member)
                         list.entries[member] = {
-                            spawn = {spawn},
+                            spawn = {{data = spawn}},
                             mode = mode,
                             state = state
                         }
                     else
-                        table.insert(list.entries[member].spawn, spawn)
+                        table.insert(list.entries[member].spawn, {data = spawn})
                     end
                 end
             end
@@ -651,7 +663,7 @@ function RECRUIT_LIST.compileFloorList()
     local ret = {}
     for _,key in pairs(list.keys) do
         local state = _DATA.Save:GetMonsterUnlock(key)
-        if list.entries[key].spawn == nil then state = nil end
+        if list.entries[key].spawn == nil then state = nil end --TODO use as selection condition
         local entry = {
             spawns = list.entries[key].spawn,
             species = key,

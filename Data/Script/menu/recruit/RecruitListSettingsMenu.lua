@@ -35,7 +35,7 @@ function RecruitListSettingsMenu:generateOptions()
     local options = self.static.options
     local states = self.static.states
     local func = self.static.value
-    for i=1, 1, 1 do -- TODO for i=1, #options, 1 do
+    for i=1, #options, 1 do
         local option_name = RogueEssence.Menu.MenuText(options[i]..":", RogueElements.Loc(2, 1))
         local s = func(i)
         local option_state = RogueEssence.Menu.MenuText(states[s], RogueElements.Loc(self.static.width - 8 * 4 -15 , 1))

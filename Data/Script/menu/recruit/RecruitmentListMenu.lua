@@ -1,3 +1,4 @@
+require "menu.recruit.summary.RecruitSummaryMenu"
 -- -----------------------------------------------
 -- Recruitment List Menu
 -- -----------------------------------------------
@@ -178,7 +179,7 @@ function RecruitmentListMenu:confirmButton()
         local enabled = element.state == states.Completed or (RogueEssence.DiagManager.Instance.DevMode and element.state == states.Discovered)
         if enabled then
             _GAME:SE("Menu/Confirm")
-            --RecruitListSummaryMenu.run(element.spawns) --TODO implement summary menu. element.spawns is a MobSpawn object list
+            RecruitSummaryMenu.run(element)
         else
             _GAME:SE("Menu/Cancel")
         end
@@ -227,14 +228,18 @@ function RecruitmentListMenu:dirsNotPressed(input, ...)
 end
 
 function RecruitmentListMenu:updateSelection(x, y)
-    local start_pos = {self.page, self.selected[1], self.selected[2]}
+    local start_pos = {self.page, self.selected[1], self.selected[2], self.mode}
     local change
-    if self.mode == self.static.listMode then change = self:changePage(x)
+    if self.mode == self.static.listMode then
+        change = self:changePage(x)
+        if y~=0 then
+            self.mode = self.static.scannerMode
+        end
     else change = self:changeSelection(x, y) end
 
     if change then
-        if self.page == start_pos[1] and self.selected[1] == start_pos[2] and self.selected[2] == start_pos[3] then
-            _GAME:SE("Menu/Cancel")
+        if self.page == start_pos[1] and self.selected[1] == start_pos[2] and self.selected[2] == start_pos[3] and self.mode == start_pos[4] then
+            if self.mode == self.static.scannerMode then _GAME:SE("Menu/Cancel") end
         else
             _GAME:SE("Menu/Skip")
             self:DrawMenu()
