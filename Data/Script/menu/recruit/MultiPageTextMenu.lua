@@ -51,7 +51,7 @@ MultiPageTextMenu.static[1].content = {
     -- page 5
     "This mod comes with an [color=#FFFF00]Scanner Mode[color] that " ..
             "allows you to view any spawn entry's [color=#00FFFF]Summary[color], " ..
-            "provided you already befriended the species in " ..
+            "provided you already encountered the species in " ..
             "question at least once.\n" ..
             "\n" ..
             "There is also an accessibility option, active by " ..
