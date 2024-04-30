@@ -30,8 +30,8 @@ outside.
 list of all Dungeons you have even just partially explored. Choose
 one, and the game will show you all Pokémon that can be recruited
 in the portion of the dungeon you have explored and where to find
-them. Just be mindful: this can be a slow process, and the bigger
-dungeons can take some seconds to load.
+them. Just be mindful: dungeon data is quite slow to work with, so
+the bigger dungeons can take a couple of seconds to load.
     - **List**: Choose this option and the game will show you the
 game's regular Recruitment Search screen.
 2. **Info**: Shows what is essentially a recap of this README, but
@@ -40,9 +40,7 @@ in-game and in a more compact format.
 differentiate which pokémon have already been recruited and which ones
 do or do not respawn upon defeat.
 4. **Options**: Displays a toggle option for the mod's
-*Spoiler Mode* and *Icon Mode*. If *Spoiler Mode* is on, then you
-will be unable to see the current floor's spawn list if it's your
-first visit, and if *Icon Mode* is on, the list will also use special
-icon markers to distinguish between caught, non-caught and special 
-spawning pokémon.
-This option can only be accessed outside of dungeons.
+*Scanner Mode* and *Icon Mode*. If *Scanner Mode* is on, then you
+will be able to see the exact data used to spawn a specific Pokémon,
+and if *Icon Mode* is on, the list will also use special icon markers 
+to distinguish between caught, non-caught and pokémon spawned in special ways.
