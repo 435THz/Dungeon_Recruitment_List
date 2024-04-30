@@ -263,7 +263,7 @@ function DebugTools:OnUpgrade()
     for i=0, _DATA.Save.Mods.Count-1, 1 do
         local mod = _DATA.Save.Mods[i]
         if mod.Name == "Dungeon Recruitment List" then
-            RECRUIT_LIST.version.Major = mod.Version
+            RECRUIT_LIST.version = mod.Version
             break
         end
     end
