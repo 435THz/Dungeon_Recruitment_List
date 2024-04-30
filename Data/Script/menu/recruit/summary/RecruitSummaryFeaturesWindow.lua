@@ -55,7 +55,8 @@ function RecruitSummaryFeaturesWindow:initialize(spawns, index)
 
     self.menu.MenuElements:Add(RogueEssence.Menu.MenuDivider(RogueElements.Loc(GraphicsManager.MenuBG.TileWidth, GraphicsManager.MenuBG.TileHeight + VERT_SPACE * 10), Bounds.Width - GraphicsManager.MenuBG.TileWidth * 2))
 
-    self.menu.MenuElements:Add(RogueEssence.Menu.MenuText(STRINGS:FormatKey("MENU_TEAM_INTRINSIC", ""), RogueElements.Loc(GraphicsManager.MenuBG.TileWidth * 2, GraphicsManager.MenuBG.TileHeight + VERT_SPACE * 9 + TITLE_OFFSET)))
+    self.intrinsicTextTitle = RogueEssence.Menu.MenuText(STRINGS:FormatKey("MENU_TEAM_INTRINSIC", ""), RogueElements.Loc(GraphicsManager.MenuBG.TileWidth * 2, GraphicsManager.MenuBG.TileHeight + VERT_SPACE * 9 + TITLE_OFFSET))
+    self.menu.MenuElements:Add(self.intrinsicTextTitle)
     for i = 1, 3, 1 do
         self["intrinsicText"..i] = RogueEssence.Menu.MenuText("Intrinsic"..i, RogueElements.Loc(GraphicsManager.MenuBG.TileWidth * 2, GraphicsManager.MenuBG.TileHeight + VERT_SPACE * 9 + TITLE_OFFSET + 2 + LINE_HEIGHT * i))
         self.menu.MenuElements:Add(self["intrinsicText"..i])
@@ -94,11 +95,13 @@ function RecruitSummaryFeaturesWindow:DrawMenu()
         self["chargesTextR"..i]:SetText(skills[i][3])
     end
 
-    local intrinsics = self:loadIntrinsics()
+    local nIntrinsics, intrinsics = self:loadIntrinsics()
+    local intrinsicTitle = STRINGS:FormatKey("MENU_TEAM_INTRINSIC", "")
+    if nIntrinsics>1 then intrinsicTitle = "Possible Abilities:" end
+    self.intrinsicTextTitle:SetText(intrinsicTitle)
     for i = 1, 3, 1 do
         self["intrinsicText"..i]:SetText(intrinsics[i])
     end
-
 end
 
 function RecruitSummaryFeaturesWindow:loadSkills()
@@ -139,7 +142,7 @@ function RecruitSummaryFeaturesWindow:loadSkills()
 end
 
 function RecruitSummaryFeaturesWindow:loadIntrinsics()
-    local result = {"", "", ""}
+    local n, result = 1, {"", "", ""}
     if self.spawn.Intrinsic == nil or self.spawn.Intrinsic == "" then
         local j=1
         local formIntrinsics = {self.formEntry.Intrinsic1, self.formEntry.Intrinsic2, self.formEntry.Intrinsic3}
@@ -150,9 +153,10 @@ function RecruitSummaryFeaturesWindow:loadIntrinsics()
                 j = j+1
             end
         end
+        n = j-1
     else
         local intrinsic = _DATA:GetIntrinsic(self.spawn.Intrinsic)
         result[1] = intrinsic:GetColoredName()
     end
-    return result
+    return n, result
 end

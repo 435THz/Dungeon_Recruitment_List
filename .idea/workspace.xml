@@ -6,8 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="e0aa1a91-9636-48c8-b9ca-15ab3f4b72a8" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Data/Script/menu/recruit/MultiPageTextMenu.lua" beforeDir="false" afterPath="$PROJECT_DIR$/Data/Script/menu/recruit/MultiPageTextMenu.lua" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Data/Script/menu/recruit/summary/RecruitSummaryFeaturesWindow.lua" beforeDir="false" afterPath="$PROJECT_DIR$/Data/Script/menu/recruit/summary/RecruitSummaryFeaturesWindow.lua" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
