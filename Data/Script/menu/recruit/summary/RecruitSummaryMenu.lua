@@ -1,4 +1,6 @@
 require "menu.recruit.summary.RecruitSummaryFeaturesWindow"
+require "menu.recruit.summary.RecruitSummaryStatsWindow"
+require "menu.recruit.summary.RecruitSummaryLearnsetWindow"
 -- -----------------------------------------------
 -- Recruit Summary Menu
 -- -----------------------------------------------
@@ -13,7 +15,7 @@ RecruitSummaryMenu.FeatureMovesOff = luanet.import_type('PMDC.LevelGen.MobSpawnM
 RecruitSummaryMenu.FeatureScaledBoost = luanet.import_type('PMDC.LevelGen.MobSpawnScaledBoost')
 RecruitSummaryMenu.FeatureUnrecruitable = luanet.import_type('PMDC.LevelGen.MobSpawnUnrecruitable')
 RecruitSummaryMenu.FeatureWeak = luanet.import_type('PMDC.LevelGen.MobSpawnWeak')
-RecruitSummaryMenu.pageList = {RecruitSummaryFeaturesWindow} --TODO , RecruitSummaryStatsWindow} --TODO , RecruitSummaryInfoWindow} --TODO , RecruitSummaryLearnsetWindow}
+RecruitSummaryMenu.pageList = {RecruitSummaryFeaturesWindow, RecruitSummaryStatsWindow, RecruitSummaryLearnsetWindow}
 
 function RecruitSummaryMenu.run(entry)
     RecruitSummaryMenu.pages = nil
@@ -25,10 +27,11 @@ function RecruitSummaryMenu.loadSpawnEntries(entry)
     local list = {}
     for _, spawn in pairs(entry.spawns) do
         if RogueEssence.GameManager.Instance.CurrentScene == RogueEssence.Dungeon.DungeonScene.Instance then
-            local f = RECRUIT_LIST.getCurrentMap().floor
+            local loc = RECRUIT_LIST.getCurrentMap()
+            local f = loc.floor
             local lvl_list = RecruitSummaryMenu.loadSpawnLevels(spawn.data, f)
             for _, lv in pairs(lvl_list) do
-                table.insert(list, {spawn = spawn.data, level = lv, floors = {{min = f, max = f}}})
+                table.insert(list, {spawn = spawn.data, level = lv, dungeon = {zone = loc.zone, segment = loc.segment}, floors = {{min = f, max = f}}})
             end
         else
             local levels = {}
@@ -40,7 +43,7 @@ function RecruitSummaryMenu.loadSpawnEntries(entry)
                 end
             end
             for lvl, f_list in pairs(levels) do
-                local element = {spawn = spawn.data, level = lvl, floors = {}}
+                local element = {spawn = spawn.data, level = lvl, dungeon = spawn.dungeon, floors = {}}
                 local floors = {}
                 for n in pairs(f_list) do table.insert(floors, n) end
                 table.sort(floors)
@@ -81,9 +84,23 @@ function RecruitSummaryMenu.loadSpawnLevels(spawn, floor)
     return ret
 end
 
+function RecruitSummaryMenu.updateMenuData(window)
+    window.current = window.spawns[window.index] --spawn entry
+    window.spawn = window.current.spawn --MobSpawn
+    window.level = window.current.level --int
+    window.spawnData = RecruitSummaryMenu.loadSpawnFeatures(window.spawn, window.level) -- spawn features table
+
+    window.baseForm = window.spawn.BaseForm -- MonsterID
+    window.formId = window.baseForm.Form -- int
+
+    window.speciesEntry = _DATA:GetMonster(window.baseForm.Species) -- MonsterData
+    window.formEntry = window.speciesEntry.Forms[window.formId] -- MonsterForm
+    window.totalPages = RecruitSummaryMenu.getPages(window.formEntry) -- int
+end
+
 function RecruitSummaryMenu.getPages(formEntry)
     if RecruitSummaryMenu.pages == nil then
-        RecruitSummaryMenu.pages = 3 +  math.ceil( RecruitSummaryMenu.getEligibleSkills(formEntry) / RecruitSummaryMenu.SLOTS_PER_PAGE)
+        RecruitSummaryMenu.pages = #RecruitSummaryMenu.pageList - 1 +  math.ceil( RecruitSummaryMenu.getEligibleSkills(formEntry) / RecruitSummaryMenu.SLOTS_PER_PAGE)
     end
     return RecruitSummaryMenu.pages
 end
@@ -99,9 +116,9 @@ function RecruitSummaryMenu.getEligibleSkills(formEntry)
     return total
 end
 
-function RecruitSummaryMenu.GetFullFormName(form, entry, data)
+function RecruitSummaryMenu.GetFullFormName(form, entry, data, genderInParentheses)
     local baseForm = RecruitSummaryMenu.getBaseForm(form)
-    local name = _DATA:GetMonster(baseForm.Species).Name:ToLocal()
+    local name = _DATA:GetMonster(form.Species).Name:ToLocal()
     if not data.recruitable then
         name = "[color=#989898]"..name
     elseif _DATA.Save:GetMonsterUnlock(form.Species) == RogueEssence.Data.GameProgress.UnlockState.Completed then
@@ -113,7 +130,7 @@ function RecruitSummaryMenu.GetFullFormName(form, entry, data)
         name = skinData.Symbol..name
     end
     local genderText = ''
-    if     form.Gender == RogueEssence.Data.Gender.Unknown then genderText = RecruitSummaryMenu.GetPossibleGenders(entry)
+    if     form.Gender == RogueEssence.Data.Gender.Unknown or genderInParentheses then genderText = RecruitSummaryMenu.GetPossibleGenders(entry)
     elseif form.Gender == RogueEssence.Data.Gender.Male    then genderText = '\u{2642}'
     elseif form.Gender == RogueEssence.Data.Gender.Female  then genderText = '\u{2640}'
     end
@@ -190,7 +207,8 @@ function RecruitSummaryMenu.loadSpawnFeatures(spawn, level)
 end
 
 
-function RecruitSummaryMenu.Update(window, input)
+function RecruitSummaryMenu.Update(window, input, failSound)
+    if failSound == nil then failSound = "Menu/Cancel" end
     if input:JustPressed(RogueEssence.FrameInput.InputType.Menu) or
             input:JustPressed(RogueEssence.FrameInput.InputType.Cancel) then
         _GAME:SE("Menu/Cancel")
@@ -199,19 +217,19 @@ function RecruitSummaryMenu.Update(window, input)
         _GAME:SE("Menu/Skip")
         local newPage = ((window.page-2) % window.totalPages) + 1
         local newWindow = math.min(newPage, #RecruitSummaryMenu.pageList)
-        _MENU:ReplaceMenu(RecruitSummaryMenu.pageList[newWindow]:new(window.spawns, window.index, newPage).menu)
+        _MENU:ReplaceMenu(RecruitSummaryMenu.pageList[newWindow]:new(window.spawns, window.index, newPage, window.selected).menu)
     elseif RogueEssence.Menu.InteractableMenu.IsInputting(input, RogueElements.Dir8.Right) then
         _GAME:SE("Menu/Skip")
         local newPage = ((window.page) % window.totalPages) + 1
         local newWindow = math.min(newPage, #RecruitSummaryMenu.pageList)
-        _MENU:ReplaceMenu(RecruitSummaryMenu.pageList[newWindow]:new(window.spawns, window.index, newPage).menu)
+        _MENU:ReplaceMenu(RecruitSummaryMenu.pageList[newWindow]:new(window.spawns, window.index, newPage, window.selected).menu)
     elseif RogueEssence.Menu.InteractableMenu.IsInputting(input, RogueElements.Dir8.Up) then
         if #window.spawns > 1 then
             _GAME:SE("Menu/Skip")
             window.index = ((window.index-2) % #window.spawns) + 1
             window:DrawMenu()
         else
-            _GAME:SE("Menu/Cancel")
+            _GAME:SE(failSound)
         end
     elseif RogueEssence.Menu.InteractableMenu.IsInputting(input, RogueElements.Dir8.Down) then
         if #window.spawns > 1 then
@@ -219,7 +237,7 @@ function RecruitSummaryMenu.Update(window, input)
             window.index = ((window.index) % #window.spawns) + 1
             window:DrawMenu()
         else
-            _GAME:SE("Menu/Cancel")
+            _GAME:SE(failSound)
         end
     end
 end
