@@ -68,6 +68,7 @@ function DebugTools:OnSaveLoad()
                 end
             end
         end
+        SV.Services.RecruitList_lastLanguage = lang
     end
 end
 
@@ -111,14 +112,18 @@ function DebugTools:OnMenuButtonPressed()
 end
 
 function DebugTools:CustomDungeonOthersMenu()
-    local menu = RogueEssence.Menu.OthersMenu()
+    -- TODO: Remove this when the memory leak is fixed or confirmed not a leak
+    if DebugTools.OthersMenu == nil then
+        DebugTools.OthersMenu = RogueEssence.Menu.OthersMenu()
+    end
+    local menu = DebugTools.OthersMenu;
     menu:SetupChoices();
 
     local isGround = RogueEssence.GameManager.Instance.CurrentScene == RogueEssence.Ground.GroundScene.Instance
     local enabled = not isGround or not _DATA.Save.NoRecruiting
     local color = Color.White
     if not enabled then color = Color.Red end
-    menu.Choices:Insert(1, RogueEssence.Menu.MenuTextChoice("Recruits", function () _MENU:AddMenu(RecruitMainChoice:new(menu.Bounds.Width+menu.Bounds.X+2).menu, true) end, enabled, color))
+    menu.Choices:Insert(1, RogueEssence.Menu.MenuTextChoice("Recruits", function () _MENU:AddMenu(RecruitListMainMenu:new(menu.Bounds.Width+menu.Bounds.X+2).menu, true) end, enabled, color))
 
     if SV.MissionsEnabled and RogueEssence.GameManager.Instance.CurrentScene == RogueEssence.Dungeon.DungeonScene.Instance then
         menu.Choices:Add(RogueEssence.Menu.MenuTextChoice("Mission Objectives", function () _MENU:AddMenu(DungeonJobList:new().menu, false) end))
@@ -236,7 +241,7 @@ end
     DebugTools:OnDungeonFloorEnd()
       When leaving a dungeon floor this is called.
 ---------------------------------------------------------------]]
-function DebugTools:OnDungeonFloorEnd(ignore, ignore2)
+function DebugTools:OnDungeonFloorEnd(_, _)
     assert(self, 'DebugTools:OnDungeonFloorEnd() : self is null!')
     local location = RECRUIT_LIST.getCurrentMap()
     RECRUIT_LIST.generateDungeonListSV(location.zone, location.segment)
@@ -253,29 +258,33 @@ end
 function DebugTools:OnUpgrade()
     assert(self, 'DebugTools:OnUpgrade() : self is null!')
     PrintInfo("RecruitList =>> Loading version")
-    local old_version = {Major = 0, Minor = 0, Build = 0, Revision = 0}
+    RECRUIT_LIST.version = {Major = 0, Minor = 0, Build = 0, Revision = 0}
     -- get old version
     for i=0, _DATA.Save.Mods.Count-1, 1 do
         local mod = _DATA.Save.Mods[i]
         if mod.Name == "Dungeon Recruitment List" then
-            old_version = mod.Version
+            RECRUIT_LIST.version = mod.Version
             break
         end
     end
 
+    --remove spoiler mode leftover data
+    if not RECRUIT_LIST.checkMinVersion(3) then
+        SV.Services.RecruitList_spoiler_mode = nil
+    end
+
     --hide accidental dev mode message
-    if old_version.Major < 2 or (old_version.Major == 2 and old_version.Minor < 3) or
-            (old_version.Minor == 3 and old_version.Build < 1) then
+    if not RECRUIT_LIST.checkMinVersion(2, 3, 1) then
         SV.Services.RecruitList_show_unrecruitable = nil
     end
 
     -- update dungeon list data
     local list =  RECRUIT_LIST.getDungeonListSV()
-    if old_version.Major < 2 or (old_version.Major == 2 and old_version.Minor < 2) then
+    if not RECRUIT_LIST.checkMinVersion(2, 2) then
         SV.Services.RecruitList_DungeonOrder = {}
         for zone, zone_data in pairs(list) do
             for segment, _ in pairs(zone_data) do
-                if old_version.Major < 2 or (old_version.Major == 2 and old_version.Minor < 0) then
+                if RECRUIT_LIST.checkMinVersion(2, 0) then
                     RECRUIT_LIST.generateDungeonListSV(zone, segment)
                 else
                     RECRUIT_LIST.updateSegmentName(zone, segment)
@@ -286,7 +295,7 @@ function DebugTools:OnUpgrade()
     end
 
     -- update dungeon order data
-    if old_version.Major < 2 or (old_version.Major == 2 and old_version.Minor < 0) then
+    if not RECRUIT_LIST.checkMinVersion(2) then
         local order = RECRUIT_LIST.getDungeonOrder()
         for _, entry in pairs(order) do
             if list[entry.zone] then
@@ -324,18 +333,18 @@ function DebugTools:Subscribe(med)
     med:Subscribe("DebugTools", EngineServiceEvents.NewGame,        function() self.OnNewGame(self) end )
     med:Subscribe("DebugTools", EngineServiceEvents.LossPenalty,        function(_, args) self.OnLossPenalty(self, args[0]) end )
     med:Subscribe("DebugTools", EngineServiceEvents.DungeonFloorExit,  function(dungeonloc, result) self.OnDungeonFloorEnd(self, dungeonloc, result) end )
-    med:Subscribe("DebugTools", EngineServiceEvents.UpgradeSave,       function(mapid) self.OnUpgrade(self) end )
+    med:Subscribe("DebugTools", EngineServiceEvents.UpgradeSave,       function(_) self.OnUpgrade(self) end )
     med:Subscribe("DebugTools", EngineServiceEvents.LoadSavedData,     function() self.OnSaveLoad(self) end )
 end
 
 ---Summary
 -- un-subscribe to all channels this service subscribed to
-function DebugTools:UnSubscribe(med)
+function DebugTools:UnSubscribe(_)
 end
 
 ---Summary
 -- The update method is run as a coroutine for each services.
-function DebugTools:Update(gtime)
+function DebugTools:Update(_)
     --  while(true)
     --    coroutine.yield()
     --  end
