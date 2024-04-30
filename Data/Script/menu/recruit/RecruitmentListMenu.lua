@@ -34,13 +34,15 @@ function RecruitmentListMenu:initialize(title, zone, segment)
     self.ENTRY_LIMIT = self.ENTRY_LINES * self.ENTRY_COLUMNS
 
     self.list = self:loadEntries(zone, segment)
+    self.validEntries = self:countValid()
     self.page = 0
     self.selected = {1, 1}
 
     self.PAGE_MAX = math.max(0, (#self.list-1)//self.ENTRY_LIMIT)
-    self.ENTRY_COUNT_LAST_PAGE = ((#self.list - 1) % self.ENTRY_LIMIT) + 1
-    self.ENTRY_COLUMNS_LAST_PAGE = ((self.ENTRY_COUNT_LAST_PAGE - 1) // self.ENTRY_LINES) + 1
-    self.ENTRY_ROWS_LAST_COLUMN = ((#self.list - 1) % self.ENTRY_LINES) + 1
+    self.PAGE_VALID = math.max(0, (self.validEntries - 1)//self.ENTRY_LIMIT)
+    self.VALID_COUNT_LAST_PAGE = ((self.validEntries - 1) % self.ENTRY_LIMIT) + 1
+    self.VALID_COLUMNS_LAST_PAGE = ((self.VALID_COUNT_LAST_PAGE - 1) // self.ENTRY_LINES) + 1
+    self.VALID_ROWS_LAST_COLUMN = ((self.validEntries - 1) % self.ENTRY_LINES) + 1
 
     self.menu = RogueEssence.Menu.ScriptableMenu(32, 32, 256, 176, function(input) self:Update(input) end)
     self.dirPressed = false
@@ -82,6 +84,13 @@ function RecruitmentListMenu:loadEntries(zone, segment)
     if self.fullDungeon then return RECRUIT_LIST.compileFullDungeonList(zone, segment)
     else return RECRUIT_LIST.compileFloorList()
     end
+end
+
+function RecruitmentListMenu:countValid()
+    for i = #self.list, 1, -1 do
+        if self.list[i].state ~= nil then return i end
+    end
+    return 0
 end
 
 function RecruitmentListMenu:DrawMenu()
@@ -130,6 +139,7 @@ function RecruitmentListMenu:DrawMenu()
         y = self.positions[slot].Y
     end
     self.cursor.Loc = RogueElements.Loc(x, y)
+    self.cursor:ResetTimeOffset()
 end
 
 function RecruitmentListMenu:formatName(monster, mode)
@@ -168,15 +178,19 @@ function RecruitmentListMenu:Update(input)
 end
 
 function RecruitmentListMenu:confirmButton()
-    if self.mode == self.static.listMode and RECRUIT_LIST.scannerMode() and #self.list>0 then
-        _GAME:SE("Menu/Skip")
-        self.mode = self.static.scannerMode
-        self:DrawMenu()
+    if self.mode == self.static.listMode and RECRUIT_LIST.scannerMode() then
+        if self.validEntries>0 and self.page <= self.PAGE_VALID then
+            _GAME:SE("Menu/Skip")
+            self.mode = self.static.scannerMode
+            self:DrawMenu()
+        else
+            _GAME:SE("Menu/Cancel")
+        end
     elseif self.mode == self.static.scannerMode then
         local states = RogueEssence.Data.GameProgress.UnlockState
         local index = self.page*self.ENTRY_LIMIT + (self.selected[1]-1)*self.ENTRY_LINES + self.selected[2]
         local element = self.list[index]
-        local enabled = element.state == states.Completed or (RogueEssence.DiagManager.Instance.DevMode and element.state == states.Discovered)
+        local enabled = element.state == states.Completed or element.state == states.Discovered --extra floor mons have nil
         if enabled then
             _GAME:SE("Menu/Confirm")
             RecruitSummaryMenu.run(element)
@@ -232,8 +246,13 @@ function RecruitmentListMenu:updateSelection(x, y)
     local change
     if self.mode == self.static.listMode then
         change = self:changePage(x)
-        if y~=0 then
-            self.mode = self.static.scannerMode
+        if y~=0 and RECRUIT_LIST.scannerMode() then
+            if self.page<= self.PAGE_VALID then
+                self.mode = self.static.scannerMode
+                change = true
+            else
+                _GAME:SE("Menu/Cancel")
+            end
         end
     else change = self:changeSelection(x, y) end
 
@@ -257,20 +276,20 @@ function RecruitmentListMenu:changeSelection(x, y)
     if x==0 and y==0 then return false end
 
     self.selected[1] = math.max(0,math.min(self.selected[1] + x, self.ENTRY_COLUMNS+1))
-    self.selected[2] = ((self.selected[2] + y - 1) % self.ENTRY_LINES) + 1
+    self.selected[2] = ((self.selected[2] + y - 1) % self:getColumnMaxRows(self.page, self.selected[1])) + 1
 
     if self.selected[1] == 0 then
-        local new_page = (self.page-1) % (self.PAGE_MAX+1)
+        local new_page = (self.page-1) % (self.PAGE_VALID+1)
         self.selected[1] = self:getPageMaxColumns(new_page)
         self.page = new_page
     elseif self.selected[1] > self:getPageMaxColumns(self.page) then
-        local new_page = (self.page+1) % (self.PAGE_MAX+1)
+        local new_page = (self.page+1) % (self.PAGE_VALID+1)
         self.selected[1] = 1
         self.page = new_page
     end
-    if self.page == self.PAGE_MAX and self.selected[1] == self.ENTRY_COLUMNS_LAST_PAGE and self.selected[2] > self.ENTRY_ROWS_LAST_COLUMN then
+    if self.selected[2] > self:getColumnMaxRows(self.page, self.selected[1]) then
         if y == 0 then
-            self.selected[2] = self.ENTRY_ROWS_LAST_COLUMN
+            self.selected[2] = self.VALID_ROWS_LAST_COLUMN
         else
             self.selected[2] = 1
         end
@@ -279,6 +298,12 @@ function RecruitmentListMenu:changeSelection(x, y)
 end
 
 function RecruitmentListMenu:getPageMaxColumns(page)
-    if page >= self.PAGE_MAX then return self.ENTRY_COLUMNS_LAST_PAGE end
+    if page >= self.PAGE_VALID then return self.VALID_COLUMNS_LAST_PAGE end
     return self.ENTRY_COLUMNS
+end
+
+function RecruitmentListMenu:getColumnMaxRows(page, column)
+    if page == self.PAGE_VALID and column == self.VALID_COLUMNS_LAST_PAGE then
+        return self.VALID_ROWS_LAST_COLUMN end
+    return self.ENTRY_LINES
 end
