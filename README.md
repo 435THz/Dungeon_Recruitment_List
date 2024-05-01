@@ -18,7 +18,7 @@ This mod is currently not compatible with
 other mod that edits the ```services/debug_tools/init.lua``` file.
 
 ### How the mod operates
-This mod swaps the Recruitment Search option in the game's Others
+This mod swaps the Recruitment Search option in the game's Others menu
 with a Recruit one.
 This new sub-menu is also accessible outside of dungeons and contains
 4 more options:
