@@ -430,7 +430,7 @@ function RECRUIT_LIST.compileFullDungeonList(zone, segment)
                     }},
                     species = spawn.BaseForm.Species,
                     mode = RECRUIT_LIST.not_seen, -- defaults to "???". this will be calculated later
-                    -- state is added later
+                    enabled = false               -- false by default. this will be calculated later
                 }
                 entry.min = entry.spawns[1].range.min
                 entry.max = entry.spawns[1].range.max
@@ -467,7 +467,7 @@ function RECRUIT_LIST.compileFullDungeonList(zone, segment)
                         }},
                         species = spawn.BaseForm.Species,
                         mode = RECRUIT_LIST.not_seen, -- defaults to "???". this will be calculated later
-                        -- state is added later
+                        enabled = false               -- false by default. this will be calculated later
                     }
                     entry.min = entry.spawns[1].range.min
                     entry.max = entry.spawns[1].range.max
@@ -533,22 +533,25 @@ function RECRUIT_LIST.compileFullDungeonList(zone, segment)
     end)
 
     for _,elem in pairs(list) do
-        local state = _DATA.Save:GetMonsterUnlock(elem.species)
-        elem.state = state
+        local unlockState = _DATA.Save:GetMonsterUnlock(elem.species)
 
         if elem.mode ~= RECRUIT_LIST.unrecruitable then
             -- check if the mon has been seen or obtained
-            if state == RogueEssence.Data.GameProgress.UnlockState.Discovered then
-                    elem.mode = RECRUIT_LIST.seen
-            elseif state == RogueEssence.Data.GameProgress.UnlockState.Completed then
+            if unlockState == RogueEssence.Data.GameProgress.UnlockState.Discovered then
+                elem.mode = RECRUIT_LIST.seen
+                elem.enabled = true
+            elseif unlockState == RogueEssence.Data.GameProgress.UnlockState.Completed then
                 if RECRUIT_LIST.check_multi_form(elem.species) then
                     elem.mode = RECRUIT_LIST.obtainedMultiForm --special color for multi-form mons
                 else
                     elem.mode = RECRUIT_LIST.obtained
                 end
+                elem.enabled = true
             end
-        elseif state == RogueEssence.Data.GameProgress.UnlockState.None then
-            elem.mode = RECRUIT_LIST.unrecruitable_not_seen
+        else
+            if unlockState == RogueEssence.Data.GameProgress.UnlockState.None then
+                elem.mode = RECRUIT_LIST.unrecruitable_not_seen
+            else elem.enabled = true end
         end
     end
     return list
@@ -578,18 +581,21 @@ function RECRUIT_LIST.compileFloorList()
 
             if spawn:CanSpawn() then
                 local member = spawn.BaseForm.Species
-                local state = _DATA.Save:GetMonsterUnlock(member)
+                local unlockState = _DATA.Save:GetMonsterUnlock(member)
                 local mode = RECRUIT_LIST.not_seen -- default is to "???" respawning mons if unknown
+                local enabled = false              --false by default
 
                 -- check if the mon has been seen or obtained
-                if state == RogueEssence.Data.GameProgress.UnlockState.Discovered then
+                if unlockState == RogueEssence.Data.GameProgress.UnlockState.Discovered then
                     mode = RECRUIT_LIST.seen
-                elseif state == RogueEssence.Data.GameProgress.UnlockState.Completed then
+                    enabled = true
+                elseif unlockState == RogueEssence.Data.GameProgress.UnlockState.Completed then
                     if RECRUIT_LIST.check_multi_form(member) then
                         mode = RECRUIT_LIST.obtainedMultiForm --special color for multi-form mons
                     else
                         mode = RECRUIT_LIST.obtained
                     end
+                    enabled = true
                 end
 
                 -- check if the mon is recruitable
@@ -615,7 +621,7 @@ function RECRUIT_LIST.compileFloorList()
                         list.entries[member] = {
                             spawn = {{data = spawn}},
                             mode = mode,
-                            state = state
+                            enabled = enabled
                         }
                     else
                         table.insert(list.entries[member].spawn, {data = spawn})
@@ -636,13 +642,13 @@ function RECRUIT_LIST.compileFloorList()
         local team = teams[i].Players
         for j = 0, team.Count-1, 1 do
             local member = team[j].BaseForm.Species
-            local state = _DATA.Save:GetMonsterUnlock(member)
+            local unlockState = _DATA.Save:GetMonsterUnlock(member)
             local mode = RECRUIT_LIST.hide -- default is to not show non-respawning mons if unknown
 
             -- check if the mon has been seen or obtained
-            if state == RogueEssence.Data.GameProgress.UnlockState.Discovered then
+            if unlockState == RogueEssence.Data.GameProgress.UnlockState.Discovered then
                 mode = RECRUIT_LIST.extra_seen
-            elseif state == RogueEssence.Data.GameProgress.UnlockState.Completed then
+            elseif unlockState == RogueEssence.Data.GameProgress.UnlockState.Completed then
                 if RECRUIT_LIST.check_multi_form(member) then
                     mode = RECRUIT_LIST.extra_obtainedMultiForm
                 else
@@ -664,13 +670,13 @@ function RECRUIT_LIST.compileFloorList()
 
     local ret = {}
     for _,key in pairs(list.keys) do
-        local state = _DATA.Save:GetMonsterUnlock(key)
-        if list.entries[key].spawn == nil then state = nil end
+        local enabled = list.entries[key].enabled
+        if list.entries[key].spawn == nil then enabled = nil end
         local entry = {
             spawns = list.entries[key].spawn,
             species = key,
             mode = list.entries[key].mode,
-            state = state
+            enabled = enabled
         }
         table.insert(ret,entry)
     end

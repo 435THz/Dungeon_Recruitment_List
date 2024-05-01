@@ -7,17 +7,17 @@ RecruitmentListMenu = Class('RecruitmentListMenu')
 RecruitmentListMenu.static = {}
 RecruitmentListMenu.static.listMode = 0
 RecruitmentListMenu.static.scannerMode = 1
--- {pattern, spacing, color, show_always}
+-- {prefix, text, suffix, spacing, color, alwaysShowPrefixAndSuffix}
 RecruitmentListMenu.static.patternList = {
-    {        '\u{E10B}???', 10, '#989898', false},
-    {                '???',  0, '#FFFFFF', false},
-    {        '\u{E10B}{t}', 10, '#989898', false},
-    {                '{t}',  0, '#FFFFFF', false},
-    {        '\u{E111}{t}', 10, '#00FFFF', false},
-    {        '{t}\u{E10C}',  0, '#FFFF00', false},
-    {'\u{E111}{t}\u{E10C}', 10, '#FFFFA0', false},
-    {        '{t}\u{E10D}',  0, '#FFA500', false},
-    {'\u{E111}{t}\u{E10D}', 10, '#FFE0A0', false}
+    {pre = '\u{E10B}', txt = '???', suf = '',         spa = 10, clr = '#989898', alw = false},
+    {pre = '',         txt = '???', suf = '',         spa =  0, clr = '#FFFFFF', alw = false},
+    {pre = '\u{E10B}', txt = '{t}', suf = '',         spa = 10, clr = '#989898', alw = false},
+    {pre = '',         txt = '{t}', suf = '',         spa =  0, clr = '#FFFFFF', alw = false},
+    {pre = '\u{E111}', txt = '{t}', suf = '',         spa = 10, clr = '#00FFFF', alw = false},
+    {pre = '',         txt = '{t}', suf = '\u{E10C}', spa =  0, clr = '#FFFF00', alw = false},
+    {pre = '\u{E111}', txt = '{t}', suf = '\u{E10C}', spa = 10, clr = '#FFFFA0', alw = false},
+    {pre = '',         txt = '{t}', suf = '\u{E10D}', spa =  0, clr = '#FFA500', alw = false},
+    {pre = '\u{E111}', txt = '{t}', suf = '\u{E10D}', spa = 10, clr = '#FFE0A0', alw = false}
 }
 RecruitmentListMenu.static.colorError = '#FF0000'
 
@@ -88,7 +88,7 @@ end
 
 function RecruitmentListMenu:countValid()
     for i = #self.list, 1, -1 do
-        if self.list[i].state ~= nil then return i end
+        if self.list[i].enabled ~= nil then return i end
     end
     return 0
 end
@@ -152,11 +152,12 @@ function RecruitmentListMenu:formatName(monster, mode)
 
     if mode > 0 then
         pattern = self.static.patternList[mode]
-        color = pattern[3]
+        color = pattern.clr
     end
-    if pattern[4] or use_icon then
-        name = string.gsub(pattern[1], "{t}", name)
-        if not self.fullDungeon  then spacing = pattern[2] end
+    name = string.gsub(pattern.txt, "{t}", name)
+    if pattern.alw or use_icon then
+        name = pattern.pre..name..pattern.suf
+        if not self.fullDungeon then spacing = pattern.spa end
     end
 
     return '[color='..color..']'..name..'[color]', spacing
@@ -187,11 +188,9 @@ function RecruitmentListMenu:confirmButton()
             _GAME:SE("Menu/Cancel")
         end
     elseif self.mode == self.static.scannerMode then
-        local states = RogueEssence.Data.GameProgress.UnlockState
         local index = self.page*self.ENTRY_LIMIT + (self.selected[1]-1)*self.ENTRY_LINES + self.selected[2]
         local element = self.list[index]
-        local enabled = element.state == states.Completed or element.state == states.Discovered --extra floor mons have nil
-        if enabled then
+        if element.enabled then
             _GAME:SE("Menu/Confirm")
             RecruitSummaryMenu.run(element)
         else
