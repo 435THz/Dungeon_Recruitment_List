@@ -165,6 +165,11 @@ end
 function RecruitSummaryStatsWindow:buildLocationText()
     local loc = self.current.dungeon
     local dungeonName = RECRUIT_LIST.getSegmentData(loc.zone, loc.segment).name
+    if dungeonName == nil then
+        if RogueEssence.GameManager.Instance.CurrentScene == RogueEssence.Dungeon.DungeonScene.Instance then
+            return _ZONE.CurrentMap:GetColoredName()
+        else return "Mysterious Location" end
+    end
     local ranges = ""
     for i, range in pairs(self.current.floors) do
         if i>1 then ranges = ranges..", " end
