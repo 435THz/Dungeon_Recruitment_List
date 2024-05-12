@@ -173,10 +173,13 @@ function RecruitSummaryStatsWindow:buildLocationText()
     local ranges = ""
     for i, range in pairs(self.current.floors) do
         if i>1 then ranges = ranges..", " end
-        if range.min == range.max then
-            ranges = ranges..range.min.."F"
+        local min = range.min
+        local max = range.max
+        if min == max then
+            ranges = ranges..min.."F"
         else
-            ranges = ranges..range.min.."-"..range.max.."F"
+            if RECRUIT_LIST.checkFloor(loc.zone, loc.segment, max) then max = "??" end
+            ranges = ranges..min.."-"..max.."F"
         end
     end
     return dungeonName.." "..ranges
@@ -195,7 +198,7 @@ function RecruitSummaryStatsWindow:calcChanceColor(value)
     if     value <= -50 then return "#A00000"
     elseif value <= -35 then return "#FF0000"
     elseif value <= -30 then return "#FF303f"
-    elseif value <    0 then return "#FF485f"
+    elseif value <=   0 then return "#FF485f"
     elseif value <   15 then return "#FF9542"
     elseif value <   20 then return "#FFC663"
     elseif value <   50 then return "#FFFF53"
