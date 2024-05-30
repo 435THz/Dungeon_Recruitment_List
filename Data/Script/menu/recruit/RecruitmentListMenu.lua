@@ -246,7 +246,7 @@ function RecruitmentListMenu:updateSelection(x, y)
     if self.mode == self.static.listMode then
         change = self:changePage(x)
         if y~=0 and RECRUIT_LIST.scannerMode() then
-            if self.page<= self.PAGE_VALID then
+            if self.validEntries>0 and self.page <= self.PAGE_VALID then
                 self.mode = self.static.scannerMode
                 change = true
             else
