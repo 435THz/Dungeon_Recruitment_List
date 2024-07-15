@@ -1,6 +1,6 @@
-require "menu.recruit.summary.RecruitSummaryFeaturesWindow"
-require "menu.recruit.summary.RecruitSummaryStatsWindow"
-require "menu.recruit.summary.RecruitSummaryLearnsetWindow"
+require "recruit_list.menu.recruit.summary.RecruitSummaryFeaturesWindow"
+require "recruit_list.menu.recruit.summary.RecruitSummaryStatsWindow"
+require "recruit_list.menu.recruit.summary.RecruitSummaryLearnsetWindow"
 -- -----------------------------------------------
 -- Recruit Summary Menu
 -- -----------------------------------------------

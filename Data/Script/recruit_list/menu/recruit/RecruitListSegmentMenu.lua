@@ -1,4 +1,4 @@
-require "menu.recruit.RecruitmentListMenu"
+require "recruit_list.menu.recruit.RecruitmentListMenu"
 
 -- -----------------------------------------------
 -- Recruitment List Dungeon Segment Menu

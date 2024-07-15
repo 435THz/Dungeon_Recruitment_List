@@ -1,5 +1,5 @@
-require 'common'
-require "menu.recruit.RecruitListMainMenu"
+require 'origin.common'
+require "recruit_list.menu.recruit.RecruitListMainMenu"
 
 RECRUIT_LIST = {}
 --[[

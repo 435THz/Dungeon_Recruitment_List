@@ -1,0 +1,1 @@
+require 'recruit_list.services.menu_tools'

@@ -1,7 +1,7 @@
-require "menu.recruit.MultiPageTextMenu"
-require "menu.recruit.RecruitListSettingsMenu"
-require "menu.recruit.RecruitListDungeonMenu"
-require "menu.recruit.RecruitmentListMenu"
+require "recruit_list.menu.recruit.MultiPageTextMenu"
+require "recruit_list.menu.recruit.RecruitListSettingsMenu"
+require "recruit_list.menu.recruit.RecruitListDungeonMenu"
+require "recruit_list.menu.recruit.RecruitmentListMenu"
 
 -- -----------------------------------------------
 -- Recruitment List Main Menu

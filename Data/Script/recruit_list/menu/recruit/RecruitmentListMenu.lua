@@ -1,4 +1,4 @@
-require "menu.recruit.summary.RecruitSummaryMenu"
+require "recruit_list.menu.recruit.summary.RecruitSummaryMenu"
 -- -----------------------------------------------
 -- Recruitment List Menu
 -- -----------------------------------------------

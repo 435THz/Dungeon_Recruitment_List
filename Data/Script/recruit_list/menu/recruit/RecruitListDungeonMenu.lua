@@ -1,5 +1,5 @@
-require "menu.recruit.RecruitListSegmentMenu"
-require "menu.recruit.RecruitmentListMenu"
+require "recruit_list.menu.recruit.RecruitListSegmentMenu"
+require "recruit_list.menu.recruit.RecruitmentListMenu"
 
 -- -----------------------------------------------
 -- Recruitment List Dungeon Choice Menu
