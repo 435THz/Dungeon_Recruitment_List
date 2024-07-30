@@ -6,7 +6,7 @@ It also touches up the vanilla in-dungeon list.
 Warning: loading long dungeons may be slow.</Description>
   <Namespace>recruit_list</Namespace>
   <UUID>72AB260C-8C56-41A9-A439-71087CA12A96</UUID>
-  <Version>3.1.0.0</Version>
+  <Version>3.1.1.0</Version>
   <GameVersion>0.8.2</GameVersion>
   <ModType>Mod</ModType>
   <Relationships>
@@ -14,6 +14,11 @@ Warning: loading long dungeons may be slow.</Description>
       <UUID>CAE98609-7A96-4CFC-B5AB-0E1D41F6A1FF</UUID>
       <Namespace>halcyon</Namespace>
       <Relationship>Incompatible</Relationship>
+    </RelatedMod>
+    <RelatedMod>
+      <UUID>55887EBE-E6E9-408B-A8DC-ADC9D6A5F67C</UUID>
+      <Namespace>enable_mission_board</Namespace>
+      <Relationship>LoadAfter</Relationship>
     </RelatedMod>
   </Relationships>
 </Header>

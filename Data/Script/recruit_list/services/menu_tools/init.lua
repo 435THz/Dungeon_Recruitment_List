@@ -27,15 +27,12 @@ function MenuTools:initialize()
 ---------------------------------------------------------------]]
 function MenuTools:OnSaveLoad()
     PrintInfo("\n<!> MenuTools: LoadSavedData..")
-    if _DATA.Save then
-        for i=0, _DATA.Save.Mods.Count-1, 1 do
-            local mod = _DATA.Save.Mods[i]
-            if mod.Namespace == "enable_mission_board" then
-                MenuTools.MissionBoard = true
-                break
-            end
-        end
-    end
+    for i=0, RogueEssence.PathMod.Mods.Length-1, 1 do
+		local mod = RogueEssence.PathMod.Mods[i]
+		if mod.Namespace == "enable_mission_board" then
+            MenuTools.MissionBoard = true
+		end
+	end
 
     local lang = STRINGS:LocaleCode()
     if lang ~= SV.Services.RecruitList_lastLanguage then
@@ -100,8 +97,7 @@ function MenuTools.HasMissions()
             return true
         end
     end
-
-    return count
+    return false
 end
 
 function MenuTools:CustomDungeonOthersMenu()
