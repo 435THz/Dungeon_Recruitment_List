@@ -47,13 +47,13 @@ function RecruitmentListMenu:initialize(title, zone, segment)
     self.menu = RogueEssence.Menu.ScriptableMenu(32, 32, 256, 176, function(input) self:Update(input) end)
     self.dirPressed = false
 
-    self.menu.MenuElements:Add(RogueEssence.Menu.MenuText(title, RogueElements.Loc(20, 8)))
+    self.menu.Elements:Add(RogueEssence.Menu.MenuText(title, RogueElements.Loc(20, 8)))
     self.page_num = RogueEssence.Menu.MenuText("", RogueElements.Loc(self.menu.Bounds.Width - 8, 8),RogueElements.DirH.Right)
     if self.PAGE_MAX>0 then
-        self.menu.MenuElements:Add(self.page_num)
+        self.menu.Elements:Add(self.page_num)
     end
 
-    self.menu.MenuElements:Add(RogueEssence.Menu.MenuDivider(RogueElements.Loc(8, 8 + 12), self.menu.Bounds.Width - 8 * 2))
+    self.menu.Elements:Add(RogueEssence.Menu.MenuDivider(RogueElements.Loc(8, 8 + 12), self.menu.Bounds.Width - 8 * 2))
 
     self.positions = {}
     self.slots = {}
@@ -72,11 +72,11 @@ function RecruitmentListMenu:initialize(title, zone, segment)
         local loc = RogueElements.Loc(x, y)
         self.positions[i] = loc
         self.slots[i] = RogueEssence.Menu.MenuText("", loc)
-        self.menu.MenuElements:Add(self.slots[i])
+        self.menu.Elements:Add(self.slots[i])
     end
 
     self.cursor = RogueEssence.Menu.MenuCursor(self.menu)
-    self.menu.MenuElements:Add(self.cursor)
+    self.menu.Elements:Add(self.cursor)
     self:DrawMenu()
 end
 

@@ -32,7 +32,7 @@ function RecruitListMainMenu:generate_options()
     for i=1, 4, 1 do
         list[i] = {text[i], true, function() self:choose(i) end}
     end
-    list[1][2] = inDungeon or dungeonListEnabled -- only disable option 1 outside of dungeons
+    list[1][2] = not _DATA.Save.NoRecruiting and (inDungeon or dungeonListEnabled) -- only disable option 1 outside of dungeons
     return list
 end
 

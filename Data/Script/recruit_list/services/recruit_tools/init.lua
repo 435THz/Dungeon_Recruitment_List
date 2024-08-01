@@ -9,31 +9,23 @@ require 'origin.common'
 require 'origin.services.baseservice'
 require 'recruit_list.recruit_list'
 
---Declare class MenuTools
-local MenuTools = Class('MenuTools', BaseService)
+--Declare class RecruitTools
+local RecruitTools = Class('RecruitTools', BaseService)
 
 --[[---------------------------------------------------------------
-    MenuTools:initialize()
-      MenuTools class constructor
+    RecruitTools:initialize()
+      RecruitTools class constructor
 ---------------------------------------------------------------]]
-function MenuTools:initialize()
+function RecruitTools:initialize()
     BaseService.initialize(self)
-    PrintInfo('MenuTools:initialize()')
+    PrintInfo('RecruitTools:initialize()')
   end
 
 --[[---------------------------------------------------------------
-    MenuTools:OnSaveLoad()
+    RecruitTools:OnSaveLoad()
       When the Continue button is pressed this is called!
 ---------------------------------------------------------------]]
-function MenuTools:OnSaveLoad()
-    PrintInfo("\n<!> MenuTools: LoadSavedData..")
-    for i=0, RogueEssence.PathMod.Mods.Length-1, 1 do
-		local mod = RogueEssence.PathMod.Mods[i]
-		if mod.Namespace == "enable_mission_board" then
-            MenuTools.MissionBoard = true
-		end
-	end
-
+function RecruitTools:OnSaveLoad()
     local lang = STRINGS:LocaleCode()
     if lang ~= SV.Services.RecruitList_lastLanguage then
         for _, ordered_zone_data in pairs(RECRUIT_LIST.getDungeonOrder()) do
@@ -51,82 +43,39 @@ function MenuTools:OnSaveLoad()
 end
 
 --[[---------------------------------------------------------------
-    MenuTools:OnMenuButtonPressed()
-      When the main menu button is pressed or the main menu should be enabled this is called!
-      This is called as a coroutine.
+    RecruitTools:OnAddMenu(menu)
+      When a menu is about to be added to the menu stack this is called!
 ---------------------------------------------------------------]]
-function MenuTools:OnMenuButtonPressed()
-    -- TODO: Remove this when the memory leak is fixed or confirmed not a leak
-    if MenuTools.MainMenu == nil then
-        MenuTools.MainMenu = RogueEssence.Menu.MainMenu()
-    end
+function RecruitTools:OnAddMenu(menu)
+    local labels = RogueEssence.Menu.MenuLabel
+    if menu:HasLabel() and menu.Label == labels.OTHERS_MENU then
 
-    MenuTools.MainMenu:SetupChoices()
-    local index = 4
-    if RogueEssence.GameManager.Instance.CurrentScene == RogueEssence.Dungeon.DungeonScene.Instance then
-        index = 5
-    end
-    MenuTools.MainMenu.Choices:RemoveAt(index)
-    MenuTools.MainMenu.Choices:Insert(index, RogueEssence.Menu.MenuTextChoice(STRINGS:FormatKey("MENU_OTHERS_TITLE"), function () _MENU:AddMenu(MenuTools:CustomDungeonOthersMenu(), false) end))
-
-    --Custom menu stuff for jobs.
-    --Check if we're in a dungeon or not. Only do main menu changes outside of a dungeon.
-    if MenuTools.MissionBoard and SV.MissionsEnabled and RogueEssence.GameManager.Instance.CurrentScene ~= RogueEssence.Dungeon.DungeonScene.Instance then
-        --not in a dungeon
-        --Add Job List option
-        local has_missions = MenuTools.HasMissions()
-        local job_list_color = Color.Red
-        if has_missions then
-            job_list_color = Color.White
+        local isGround = RogueEssence.GameManager.Instance.CurrentScene == RogueEssence.Ground.GroundScene.Instance
+        local enabled = true
+        local color = Color.White
+        local choice = RogueEssence.Menu.MenuTextChoice("Recruits", function () _MENU:AddMenu(RecruitListMainMenu:new(menu.Bounds.Width+menu.Bounds.X+2).menu, true) end, enabled, color)
+        
+        -- put in place of Recruitment Search if present
+        local index = menu:GetChoiceIndexByLabel("OTH_RECRUIT")
+        if index >0 then
+            menu.Choices[index] = choice
+        else
+            -- put right before Settings if present
+            index = menu:GetChoiceIndexByLabel(labels.OTH_SETTINGS)
+            -- fall back to either 1 or choices count if the check fails
+            if index <0 then index = math.min(1, menu.Choices.Count) end
+            menu.Choices:Insert(index, choice)
         end
-
-        MenuTools.MainMenu.Choices:Insert(4, RogueEssence.Menu.MenuTextChoice(Text.FormatKey("MENU_JOBLIST_TITLE"), function () _MENU:AddMenu(BoardMenu:new(COMMON.MISSION_BOARD_TAKEN, nil, MenuTools.MainMenu).menu, false) end, has_missions, job_list_color))
+        menu:InitMenu()
     end
-
-    MenuTools.MainMenu:SetupTitleAndSummary()
-
-    MenuTools.MainMenu:InitMenu()
-    TASK:WaitTask(_MENU:ProcessMenuCoroutine(MenuTools.MainMenu))
-end
-
---How many missions are taken? Probably shoulda just had a variable that kept track, but oh well...
-function MenuTools.HasMissions()
-    if not SV.TakenBoard then return false end
-    for i = 1, 8, 1 do
-        if SV.TakenBoard[i] and SV.TakenBoard[i].Client ~= "" then
-            return true
-        end
-    end
-    return false
-end
-
-function MenuTools:CustomDungeonOthersMenu()
-    -- TODO: Remove this when the memory leak is fixed or confirmed not a leak
-    if MenuTools.OthersMenu == nil then
-        MenuTools.OthersMenu = RogueEssence.Menu.OthersMenu()
-    end
-    local menu = MenuTools.OthersMenu;
-    menu:SetupChoices();
-
-    local isGround = RogueEssence.GameManager.Instance.CurrentScene == RogueEssence.Ground.GroundScene.Instance
-    local enabled = not isGround or not _DATA.Save.NoRecruiting
-    local color = Color.White
-    if not enabled then color = Color.Red end
-    menu.Choices:Insert(1, RogueEssence.Menu.MenuTextChoice("Recruits", function () _MENU:AddMenu(RecruitListMainMenu:new(menu.Bounds.Width+menu.Bounds.X+2).menu, true) end, enabled, color))
-
-    if SV.MissionsEnabled and RogueEssence.GameManager.Instance.CurrentScene == RogueEssence.Dungeon.DungeonScene.Instance then
-        menu.Choices:Add(RogueEssence.Menu.MenuTextChoice("Mission Objectives", function () _MENU:AddMenu(DungeonJobList:new().menu, false) end))
-    end
-    menu:InitMenu();
-    return menu
 end
 
 --[[---------------------------------------------------------------
-    MenuTools:OnDungeonFloorEnd()
+    RecruitTools:OnDungeonFloorEnd()
       When leaving a dungeon floor this is called.
 ---------------------------------------------------------------]]
-function MenuTools:OnDungeonFloorEnd(_, _)
-    assert(self, 'MenuTools:OnDungeonFloorEnd() : self is null!')
+function RecruitTools:OnDungeonFloorEnd(_, _)
+    assert(self, 'RecruitTools:OnDungeonFloorEnd() : self is null!')
     local location = RECRUIT_LIST.getCurrentMap()
     RECRUIT_LIST.generateDungeonListSV(location.zone, location.segment)
 
@@ -136,11 +85,11 @@ function MenuTools:OnDungeonFloorEnd(_, _)
 end
 
 --[[---------------------------------------------------------------
-    MenuTools:OnUpgrade()
+    RecruitTools:OnUpgrade()
       When version differences are found while loading a save this is called.
 ---------------------------------------------------------------]]
-function MenuTools:OnUpgrade()
-    assert(self, 'MenuTools:OnUpgrade() : self is null!')
+function RecruitTools:OnUpgrade()
+    assert(self, 'RecruitTools:OnUpgrade() : self is null!')
     PrintInfo("RecruitList =>> Loading version")
     RECRUIT_LIST.version = {Major = 0, Minor = 0, Build = 0, Revision = 0}
     -- get old version
@@ -210,26 +159,26 @@ end
 
 ---Summary
 -- Subscribe to all channels this service wants callbacks from
-function MenuTools:Subscribe(med)
-    med:Subscribe("MenuTools", EngineServiceEvents.LoadSavedData,     function() self.OnSaveLoad(self) end )
-    med:Subscribe("MenuTools", EngineServiceEvents.MenuButtonPressed, function() self.OnMenuButtonPressed() end )
-    med:Subscribe("MenuTools", EngineServiceEvents.DungeonFloorExit,  function(dungeonloc, result) self.OnDungeonFloorEnd(self, dungeonloc, result) end )
-    med:Subscribe("MenuTools", EngineServiceEvents.UpgradeSave,       function(_) self.OnUpgrade(self) end )
+function RecruitTools:Subscribe(med)
+    med:Subscribe("RecruitTools", EngineServiceEvents.LoadSavedData,     function() self.OnSaveLoad(self) end )
+    med:Subscribe("RecruitTools", EngineServiceEvents.AddMenu,           function(_, args) self.OnAddMenu(self, args[0]) end )
+    med:Subscribe("RecruitTools", EngineServiceEvents.DungeonFloorExit,  function(dungeonloc, result) self.OnDungeonFloorEnd(self, dungeonloc, result) end )
+    med:Subscribe("RecruitTools", EngineServiceEvents.UpgradeSave,       function(_) self.OnUpgrade(self) end )
 end
 
 ---Summary
 -- un-subscribe to all channels this service subscribed to
-function MenuTools:UnSubscribe(_)
+function RecruitTools:UnSubscribe(_)
 end
 
 ---Summary
 -- The update method is run as a coroutine for each services.
-function MenuTools:Update(_)
+function RecruitTools:Update(_)
     --  while(true)
     --    coroutine.yield()
     --  end
 end
 
 --Add our service
-SCRIPT:AddService("MenuTools", MenuTools:new())
-return MenuTools
+SCRIPT:AddService("RecruitTools", RecruitTools:new())
+return RecruitTools

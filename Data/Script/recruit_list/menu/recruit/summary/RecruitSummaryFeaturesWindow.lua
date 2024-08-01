@@ -18,48 +18,48 @@ function RecruitSummaryFeaturesWindow:initialize(spawns, index)
     local VERT_SPACE = 14
     local LINE_HEIGHT = 12
 
-    self.menu.MenuElements:Add(RogueEssence.Menu.MenuText(STRINGS:FormatKey("MENU_TEAM_FEATURES"), RogueElements.Loc(GraphicsManager.MenuBG.TileWidth + 8, GraphicsManager.MenuBG.TileHeight)))
-    self.menu.MenuElements:Add(RogueEssence.Menu.MenuText("("..self.page.."/"..self.totalPages..")", RogueElements.Loc(Bounds.Width - GraphicsManager.MenuBG.TileWidth, GraphicsManager.MenuBG.TileHeight), RogueElements.DirH.Right))
-    self.menu.MenuElements:Add(RogueEssence.Menu.MenuDivider(RogueElements.Loc(GraphicsManager.MenuBG.TileWidth, GraphicsManager.MenuBG.TileHeight + 12), Bounds.Width - GraphicsManager.MenuBG.TileWidth * 2))
+    self.menu.Elements:Add(RogueEssence.Menu.MenuText(STRINGS:FormatKey("MENU_TEAM_FEATURES"), RogueElements.Loc(GraphicsManager.MenuBG.TileWidth + 8, GraphicsManager.MenuBG.TileHeight)))
+    self.menu.Elements:Add(RogueEssence.Menu.MenuText("("..self.page.."/"..self.totalPages..")", RogueElements.Loc(Bounds.Width - GraphicsManager.MenuBG.TileWidth, GraphicsManager.MenuBG.TileHeight), RogueElements.DirH.Right))
+    self.menu.Elements:Add(RogueEssence.Menu.MenuDivider(RogueElements.Loc(GraphicsManager.MenuBG.TileWidth, GraphicsManager.MenuBG.TileHeight + 12), Bounds.Width - GraphicsManager.MenuBG.TileWidth * 2))
 
     self.portraitBox  = RogueEssence.Menu.SpeakerPortrait(RecruitSummaryMenu.getBaseForm(self.baseForm), RogueEssence.Content.EmoteStyle(0), RogueElements.Loc(GraphicsManager.MenuBG.TileWidth * 2, GraphicsManager.MenuBG.TileHeight + TITLE_OFFSET), false)
     self.nameText     = RogueEssence.Menu.MenuText("Species (genders)", RogueElements.Loc(GraphicsManager.MenuBG.TileWidth * 2 + 48, GraphicsManager.MenuBG.TileHeight + TITLE_OFFSET))
     self.elementsText = RogueEssence.Menu.MenuText("Type", RogueElements.Loc(GraphicsManager.MenuBG.TileWidth * 2 + 48, GraphicsManager.MenuBG.TileHeight + VERT_SPACE * 1 + TITLE_OFFSET))
-    self.menu.MenuElements:Add(self.portraitBox)
-    self.menu.MenuElements:Add(self.nameText)
-    self.menu.MenuElements:Add(self.elementsText)
+    self.menu.Elements:Add(self.portraitBox)
+    self.menu.Elements:Add(self.nameText)
+    self.menu.Elements:Add(self.elementsText)
 
-    self.menu.MenuElements:Add(RogueEssence.Menu.MenuText(STRINGS:FormatKey("MENU_TEAM_LEVEL_SHORT"), RogueElements.Loc(GraphicsManager.MenuBG.TileWidth * 2 + 48, GraphicsManager.MenuBG.TileHeight + VERT_SPACE * 2 + TITLE_OFFSET)))
+    self.menu.Elements:Add(RogueEssence.Menu.MenuText(STRINGS:FormatKey("MENU_TEAM_LEVEL_SHORT"), RogueElements.Loc(GraphicsManager.MenuBG.TileWidth * 2 + 48, GraphicsManager.MenuBG.TileHeight + VERT_SPACE * 2 + TITLE_OFFSET)))
     self.levelText    = RogueEssence.Menu.MenuText("Level", RogueElements.Loc(GraphicsManager.MenuBG.TileWidth * 2 + 48 + GraphicsManager.TextFont:SubstringWidth(STRINGS:FormatKey("MENU_TEAM_LEVEL_SHORT")), GraphicsManager.MenuBG.TileHeight + VERT_SPACE * 2 + TITLE_OFFSET), DirH.Left)
-    self.menu.MenuElements:Add(self.levelText)
+    self.menu.Elements:Add(self.levelText)
 
-    self.menu.MenuElements:Add(RogueEssence.Menu.MenuText(STRINGS:FormatKey("MENU_TEAM_HP"), RogueElements.Loc(GraphicsManager.MenuBG.TileWidth * 2, GraphicsManager.MenuBG.TileHeight + VERT_SPACE * 3 + TITLE_OFFSET)))
+    self.menu.Elements:Add(RogueEssence.Menu.MenuText(STRINGS:FormatKey("MENU_TEAM_HP"), RogueElements.Loc(GraphicsManager.MenuBG.TileWidth * 2, GraphicsManager.MenuBG.TileHeight + VERT_SPACE * 3 + TITLE_OFFSET)))
     self.HPText = RogueEssence.Menu.MenuText("HP", RogueElements.Loc(GraphicsManager.MenuBG.TileWidth * 2 + GraphicsManager.TextFont:SubstringWidth(STRINGS:FormatKey("MENU_TEAM_HP")) + 4, GraphicsManager.MenuBG.TileHeight + VERT_SPACE * 3 + TITLE_OFFSET), DirH.Left)
-    self.menu.MenuElements:Add(self.HPText)
+    self.menu.Elements:Add(self.HPText)
 
-    self.menu.MenuElements:Add(RogueEssence.Menu.MenuText(STRINGS:FormatKey("MENU_TEAM_HUNGER"), RogueElements.Loc((Bounds.End.X - Bounds.X) / 2, GraphicsManager.MenuBG.TileHeight + VERT_SPACE * 3 + TITLE_OFFSET)))
+    self.menu.Elements:Add(RogueEssence.Menu.MenuText(STRINGS:FormatKey("MENU_TEAM_HUNGER"), RogueElements.Loc((Bounds.End.X - Bounds.X) / 2, GraphicsManager.MenuBG.TileHeight + VERT_SPACE * 3 + TITLE_OFFSET)))
     self.bellyText = RogueEssence.Menu.MenuText("Belly/100", RogueElements.Loc((Bounds.End.X - Bounds.X) / 2 + GraphicsManager.TextFont:SubstringWidth(STRINGS:FormatKey("MENU_TEAM_HUNGER")) + 4, GraphicsManager.MenuBG.TileHeight + VERT_SPACE * 3 + TITLE_OFFSET), DirH.Left)
-    self.menu.MenuElements:Add(self.bellyText)
+    self.menu.Elements:Add(self.bellyText)
 
-    self.menu.MenuElements:Add(RogueEssence.Menu.MenuDivider(RogueElements.Loc(GraphicsManager.MenuBG.TileWidth, GraphicsManager.MenuBG.TileHeight + VERT_SPACE * 5), Bounds.Width - GraphicsManager.MenuBG.TileWidth * 2))
+    self.menu.Elements:Add(RogueEssence.Menu.MenuDivider(RogueElements.Loc(GraphicsManager.MenuBG.TileWidth, GraphicsManager.MenuBG.TileHeight + VERT_SPACE * 5), Bounds.Width - GraphicsManager.MenuBG.TileWidth * 2))
 
-    self.menu.MenuElements:Add(RogueEssence.Menu.MenuText(STRINGS:FormatKey("MENU_TEAM_SKILLS"), RogueElements.Loc(GraphicsManager.MenuBG.TileWidth * 2, GraphicsManager.MenuBG.TileHeight + VERT_SPACE * 4 + TITLE_OFFSET)))
+    self.menu.Elements:Add(RogueEssence.Menu.MenuText(STRINGS:FormatKey("MENU_TEAM_SKILLS"), RogueElements.Loc(GraphicsManager.MenuBG.TileWidth * 2, GraphicsManager.MenuBG.TileHeight + VERT_SPACE * 4 + TITLE_OFFSET)))
     for i = 1, RogueEssence.Dungeon.CharData.MAX_SKILL_SLOTS, 1 do
         self["skillText"..i] = RogueEssence.Menu.MenuText("-----", RogueElements.Loc(GraphicsManager.MenuBG.TileWidth * 2, GraphicsManager.MenuBG.TileHeight + VERT_SPACE * (i + 4) + TITLE_OFFSET));
         self["chargesTextL"..i] = RogueEssence.Menu.MenuText("--", RogueElements.Loc(Bounds.Width - GraphicsManager.MenuBG.TileWidth * 2 - 16 - GraphicsManager.TextFont.CharSpace, GraphicsManager.MenuBG.TileHeight + VERT_SPACE * (i + 4) + TITLE_OFFSET), DirH.Right);
         self["chargesTextR"..i] = RogueEssence.Menu.MenuText("/--", RogueElements.Loc(Bounds.Width - GraphicsManager.MenuBG.TileWidth * 2 - 16, GraphicsManager.MenuBG.TileHeight + VERT_SPACE * (i + 4) + TITLE_OFFSET), DirH.Left);
-        self.menu.MenuElements:Add(self["skillText"..i])
-        self.menu.MenuElements:Add(self["chargesTextL"..i])
-        self.menu.MenuElements:Add(self["chargesTextR"..i])
+        self.menu.Elements:Add(self["skillText"..i])
+        self.menu.Elements:Add(self["chargesTextL"..i])
+        self.menu.Elements:Add(self["chargesTextR"..i])
     end
 
-    self.menu.MenuElements:Add(RogueEssence.Menu.MenuDivider(RogueElements.Loc(GraphicsManager.MenuBG.TileWidth, GraphicsManager.MenuBG.TileHeight + VERT_SPACE * 10), Bounds.Width - GraphicsManager.MenuBG.TileWidth * 2))
+    self.menu.Elements:Add(RogueEssence.Menu.MenuDivider(RogueElements.Loc(GraphicsManager.MenuBG.TileWidth, GraphicsManager.MenuBG.TileHeight + VERT_SPACE * 10), Bounds.Width - GraphicsManager.MenuBG.TileWidth * 2))
 
     self.intrinsicTextTitle = RogueEssence.Menu.MenuText(STRINGS:FormatKey("MENU_TEAM_INTRINSIC", ""), RogueElements.Loc(GraphicsManager.MenuBG.TileWidth * 2, GraphicsManager.MenuBG.TileHeight + VERT_SPACE * 9 + TITLE_OFFSET))
-    self.menu.MenuElements:Add(self.intrinsicTextTitle)
+    self.menu.Elements:Add(self.intrinsicTextTitle)
     for i = 1, 3, 1 do
         self["intrinsicText"..i] = RogueEssence.Menu.MenuText("Intrinsic"..i, RogueElements.Loc(GraphicsManager.MenuBG.TileWidth * 2, GraphicsManager.MenuBG.TileHeight + VERT_SPACE * 9 + TITLE_OFFSET + 2 + LINE_HEIGHT * i))
-        self.menu.MenuElements:Add(self["intrinsicText"..i])
+        self.menu.Elements:Add(self["intrinsicText"..i])
     end
 
     self:DrawMenu()

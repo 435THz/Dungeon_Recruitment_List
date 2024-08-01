@@ -20,12 +20,12 @@ function RecruitSummaryLearnsetWindow:initialize(spawns, index, page, selected)
     local LINE_HEIGHT = 12
 
     self.title = RogueEssence.Menu.MenuText(STRINGS:FormatKey("MENU_TEAM_LEARNSET", "Pokémon"), RogueElements.Loc(GraphicsManager.MenuBG.TileWidth + 8, GraphicsManager.MenuBG.TileHeight))
-    self.menu.MenuElements:Add(self.title)
-    self.menu.MenuElements:Add(RogueEssence.Menu.MenuText("("..self.page.."/"..self.totalPages..")", RogueElements.Loc(Bounds.Width - GraphicsManager.MenuBG.TileWidth, GraphicsManager.MenuBG.TileHeight), RogueElements.DirH.Right))
-    self.menu.MenuElements:Add(RogueEssence.Menu.MenuDivider(RogueElements.Loc(GraphicsManager.MenuBG.TileWidth, GraphicsManager.MenuBG.TileHeight + 12), Bounds.Width - GraphicsManager.MenuBG.TileWidth * 2))
+    self.menu.Elements:Add(self.title)
+    self.menu.Elements:Add(RogueEssence.Menu.MenuText("("..self.page.."/"..self.totalPages..")", RogueElements.Loc(Bounds.Width - GraphicsManager.MenuBG.TileWidth, GraphicsManager.MenuBG.TileHeight), RogueElements.DirH.Right))
+    self.menu.Elements:Add(RogueEssence.Menu.MenuDivider(RogueElements.Loc(GraphicsManager.MenuBG.TileWidth, GraphicsManager.MenuBG.TileHeight + 12), Bounds.Width - GraphicsManager.MenuBG.TileWidth * 2))
 
     self.cursor = RogueEssence.Menu.MenuCursor(self.menu)
-    self.menu.MenuElements:Add(self.cursor)
+    self.menu.Elements:Add(self.cursor)
 
     self.summaryMenu = RogueEssence.Menu.SkillSummary(RogueElements.Rect.FromPoints(RogueElements.Loc(16, GraphicsManager.ScreenHeight - 8 - GraphicsManager.MenuBG.TileHeight * 2 - LINE_HEIGHT * 2 - VERT_SPACE * 4), RogueElements.Loc(GraphicsManager.ScreenWidth - 16, GraphicsManager.ScreenHeight - 8)))
     self.menu.SummaryMenus:Add(self.summaryMenu)
@@ -62,8 +62,8 @@ function RecruitSummaryLearnsetWindow:loadSkills()
     local TITLE_OFFSET = RogueEssence.Menu.TitledStripMenu.TITLE_OFFSET
     local Bounds = self.menu.Bounds
     local VERT_SPACE = 14
-    while self.menu.MenuElements.Count>4 do
-        self.menu.MenuElements:RemoveAt(4)
+    while self.menu.Elements.Count>4 do
+        self.menu.Elements:RemoveAt(4)
     end
 
     self.skillIds = {}
@@ -83,7 +83,7 @@ function RecruitSummaryLearnsetWindow:loadSkills()
             choice.Bounds = RogueElements.Rect(RogueElements.Loc(GraphicsManager.MenuBG.TileWidth + 16 - 5, GraphicsManager.MenuBG.TileHeight + TITLE_OFFSET + VERT_SPACE * (slot-1) - 1), RogueElements.Loc(Bounds.Width - GraphicsManager.MenuBG.TileWidth * 2 - 16 + 5 - 4, VERT_SPACE - 2));
             table.insert(self.skillIds, skill.Skill)
             table.insert(self.choices, choice)
-            self.menu.MenuElements:Add(choice)
+            self.menu.Elements:Add(choice)
             slot = slot+1
         end
         i = i+1

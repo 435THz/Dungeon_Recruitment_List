@@ -165,10 +165,10 @@ function MultiPageTextMenu:initialize(content_index)
     self.page_num = RogueEssence.Menu.MenuText("", RogueElements.Loc(self.menu.Bounds.Width - 8, 8),RogueElements.DirH.Right)
     self.page_text = RogueEssence.Menu.DialogueText("", RogueElements.Rect(RogueElements.Loc(GraphicsManager.MenuBG.TileWidth * 2, GraphicsManager.MenuBG.TileHeight + 14 + 4),
         RogueElements.Loc(self.menu.Bounds.Width - GraphicsManager.MenuBG.TileWidth * 4, self.menu.Bounds.Height - GraphicsManager.MenuBG.TileHeight * 4)), 12)
-    self.menu.MenuElements:Add(RogueEssence.Menu.MenuText(self.title, RogueElements.Loc(16, 8)))
-    self.menu.MenuElements:Add(self.page_num)
-    self.menu.MenuElements:Add(RogueEssence.Menu.MenuDivider(RogueElements.Loc(8, 8 + 12), self.menu.Bounds.Width - 8 * 2))
-    self.menu.MenuElements:Add(self.page_text)
+    self.menu.Elements:Add(RogueEssence.Menu.MenuText(self.title, RogueElements.Loc(16, 8)))
+    self.menu.Elements:Add(self.page_num)
+    self.menu.Elements:Add(RogueEssence.Menu.MenuDivider(RogueElements.Loc(8, 8 + 12), self.menu.Bounds.Width - 8 * 2))
+    self.menu.Elements:Add(self.page_text)
 
     self:UpdateMenu()
 end
