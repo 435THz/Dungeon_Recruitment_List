@@ -50,23 +50,23 @@ function RecruitTools:OnAddMenu(menu)
     local labels = RogueEssence.Menu.MenuLabel
     if menu:HasLabel() and menu.Label == labels.OTHERS_MENU then
 
-        local isGround = RogueEssence.GameManager.Instance.CurrentScene == RogueEssence.Ground.GroundScene.Instance
         local enabled = true
         local color = Color.White
         local choice = RogueEssence.Menu.MenuTextChoice("Recruits", function () _MENU:AddMenu(RecruitListMainMenu:new(menu.Bounds.Width+menu.Bounds.X+2).menu, true) end, enabled, color)
-        
+        local choices = menu:ExportChoices()
+
         -- put in place of Recruitment Search if present
         local index = menu:GetChoiceIndexByLabel("OTH_RECRUIT")
-        if index >0 then
-            menu.Choices[index] = choice
+        if index > 0 then
+            choices[index] = choice
         else
             -- put right before Settings if present
             index = menu:GetChoiceIndexByLabel(labels.OTH_SETTINGS)
             -- fall back to either 1 or choices count if the check fails
-            if index <0 then index = math.min(1, menu.Choices.Count) end
-            menu.Choices:Insert(index, choice)
+            if index < 0 then index = math.min(1, choices.Count) end
+            choices:Insert(index, choice)
         end
-        menu:InitMenu()
+        menu:ImportChoices(choices)
     end
 end
 
