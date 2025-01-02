@@ -8,7 +8,7 @@ RecruitSummaryLearnsetWindow = Class('RecruitSummaryLearnsetWindow')
 function RecruitSummaryLearnsetWindow:initialize(spawns, index, page, selected)
     self.page = page
     self.index = math.max(1, math.min(index or 1, #spawns))
-    self.spawns = spawns
+    self.entries = spawns
     self.selected = selected or 1
     self.hovered = 0
     RecruitSummaryMenu.updateMenuData(self)
@@ -45,12 +45,7 @@ end
 function RecruitSummaryLearnsetWindow:DrawMenu()
     RecruitSummaryMenu.updateMenuData(self)
 
-    local name = _DATA:GetMonster(self.baseForm.Species).Name:ToLocal().."[color]"
-    if not self.spawnData.recruitable then
-        name = "[color=#989898]"..name
-    elseif _DATA.Save:GetMonsterUnlock(self.baseForm.Species) == RogueEssence.Data.GameProgress.UnlockState.Completed then
-        name = "[color=#00FF00]"..name else
-        name = "[color=#00FFFF]"..name end
+    local name = self.entryData.speciesName
     self.title:SetText(STRINGS:FormatKey("MENU_TEAM_LEARNSET", name))
 
     self:loadSkills()

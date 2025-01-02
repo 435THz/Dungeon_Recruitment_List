@@ -26,7 +26,7 @@ outside.
 list of all Dungeons you have even just partially explored. Choose
 one, and the game will show you all Pokémon that can be recruited
 in the portion of the dungeon you have explored and where to find
-them. Just be mindful: dungeon data is quite slow to work with, so
+them. Just be mindful: dungeon data is quite big, so
 the bigger dungeons can take a couple of seconds to load.
     - **List**: Choose this option and the game will show you the
 game's regular Recruitment Search screen.

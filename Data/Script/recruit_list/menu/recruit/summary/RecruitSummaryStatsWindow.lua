@@ -8,7 +8,7 @@ RecruitSummaryStatsWindow = Class('RecruitSummaryStatsWindow')
 function RecruitSummaryStatsWindow:initialize(spawns, index)
     self.page = 2
     self.index = math.max(1, math.min(index or 1, #spawns))
-    self.spawns = spawns
+    self.entries = spawns
     RecruitSummaryMenu.updateMenuData(self)
 
     self.menu = RogueEssence.Menu.ScriptableMenu(24, 16, 272, 208, function(input) RecruitSummaryMenu.Update(self, input) end)
@@ -22,7 +22,7 @@ function RecruitSummaryStatsWindow:initialize(spawns, index)
     self.menu.Elements:Add(RogueEssence.Menu.MenuText("("..self.page.."/"..self.totalPages..")", RogueElements.Loc(Bounds.Width - GraphicsManager.MenuBG.TileWidth, GraphicsManager.MenuBG.TileHeight), RogueElements.DirH.Right))
     self.menu.Elements:Add(RogueEssence.Menu.MenuDivider(RogueElements.Loc(GraphicsManager.MenuBG.TileWidth, GraphicsManager.MenuBG.TileHeight + 12), Bounds.Width - GraphicsManager.MenuBG.TileWidth * 2))
 
-    self.portraitBox  = RogueEssence.Menu.SpeakerPortrait(RecruitSummaryMenu.getBaseForm(self.baseForm), RogueEssence.Content.EmoteStyle(0), RogueElements.Loc(GraphicsManager.MenuBG.TileWidth * 2, GraphicsManager.MenuBG.TileHeight + TITLE_OFFSET), false)
+    self.portraitBox  = RogueEssence.Menu.SpeakerPortrait(RecruitSummaryMenu.getBaseForm(self.entryData.monsterID), RogueEssence.Content.EmoteStyle(0), RogueElements.Loc(GraphicsManager.MenuBG.TileWidth * 2, GraphicsManager.MenuBG.TileHeight + TITLE_OFFSET), false)
     self.nameText     = RogueEssence.Menu.MenuText("Species (genders)", RogueElements.Loc(GraphicsManager.MenuBG.TileWidth * 2 + 48, GraphicsManager.MenuBG.TileHeight + TITLE_OFFSET))
     self.elementsText = RogueEssence.Menu.MenuText("Type", RogueElements.Loc(GraphicsManager.MenuBG.TileWidth * 2 + 48, GraphicsManager.MenuBG.TileHeight + VERT_SPACE * 1 + TITLE_OFFSET))
     self.menu.Elements:Add(self.portraitBox)
@@ -87,30 +87,29 @@ end
 function RecruitSummaryStatsWindow:DrawMenu()
     RecruitSummaryMenu.updateMenuData(self)
 
-    self.portraitBox.Speaker = RecruitSummaryMenu.getBaseForm(self.baseForm)
+    self.portraitBox.Speaker = RecruitSummaryMenu.getBaseForm(self.entryData.monsterID)
 
-    local speciesName = RecruitSummaryMenu.GetFullFormName(self.baseForm, self.formEntry, self.spawnData)
-    self.nameText:SetText(speciesName)
+    self.nameText:SetText(self.entryData.speciesName)
 
-    local element1 = _DATA:GetElement(self.formEntry.Element1)
-    local element2 = _DATA:GetElement(self.formEntry.Element2)
+    local element1 = _DATA:GetElement(self.entryData.formEntry.Element1)
+    local element2 = _DATA:GetElement(self.entryData.formEntry.Element2)
     local typeString = element1:GetIconName();
-    if self.formEntry.Element2 ~= _DATA.DefaultElement then typeString = typeString.."/"..element2:GetIconName() end
+    if self.entryData.formEntry.Element2 ~= _DATA.DefaultElement then typeString = typeString.."/"..element2:GetIconName() end
     self.elementsText:SetText(STRINGS:FormatKey("MENU_TEAM_ELEMENT", typeString))
 
-    self.levelText:SetText(tostring(self.level))
+    self.levelText:SetText(tostring(self.entryData.level))
 
     local location = "Lives in: "
     location = location .. "[color=#FFC663]"..self:buildLocationText().."[color]"
     self.locationText:SetText(location)
 
     local Stat = RogueEssence.Data.Stat
-    local HP =      self.formEntry:GetStat(self.level, Stat.HP,      self.spawnData.boost.mhp)
-    local Attack =  self.formEntry:GetStat(self.level, Stat.Attack,  self.spawnData.boost.atk)
-    local Defense = self.formEntry:GetStat(self.level, Stat.Defense, self.spawnData.boost.def)
-    local MAtk =    self.formEntry:GetStat(self.level, Stat.MAtk,    self.spawnData.boost.sat)
-    local MDef =    self.formEntry:GetStat(self.level, Stat.MDef,    self.spawnData.boost.sdf)
-    local Speed =   self.formEntry:GetStat(self.level, Stat.Speed,   self.spawnData.boost.spd)
+    local HP =      self.entryData.formEntry:GetStat(self.entryData.level, Stat.HP,      self.entryData.features.boost.mhp)
+    local Attack =  self.entryData.formEntry:GetStat(self.entryData.level, Stat.Attack,  self.entryData.features.boost.atk)
+    local Defense = self.entryData.formEntry:GetStat(self.entryData.level, Stat.Defense, self.entryData.features.boost.def)
+    local MAtk =    self.entryData.formEntry:GetStat(self.entryData.level, Stat.MAtk,    self.entryData.features.boost.sat)
+    local MDef =    self.entryData.formEntry:GetStat(self.entryData.level, Stat.MDef,    self.entryData.features.boost.sdf)
+    local Speed =   self.entryData.formEntry:GetStat(self.entryData.level, Stat.Speed,   self.entryData.features.boost.spd)
     self.HPText:SetText(tostring(HP))
     self.AttackText:SetText(tostring(Attack))
     self.DefenseText:SetText(tostring(Defense))
@@ -118,12 +117,12 @@ function RecruitSummaryStatsWindow:DrawMenu()
     self.MDefText:SetText(tostring(MDef))
     self.SpeedText:SetText(tostring(Speed))
 
-    local hpLength =    self:calcLength(Stat.HP,      self.formEntry, HP,      self.level)
-    local atkLength =   self:calcLength(Stat.Attack,  self.formEntry, Attack,  self.level)
-    local defLength =   self:calcLength(Stat.Defense, self.formEntry, Defense, self.level)
-    local mAtkLength =  self:calcLength(Stat.MAtk,    self.formEntry, MAtk,    self.level)
-    local mDefLength =  self:calcLength(Stat.MDef,    self.formEntry, MDef,    self.level)
-    local speedLength = self:calcLength(Stat.Speed,   self.formEntry, Speed,   self.level)
+    local hpLength =    self:calcLength(Stat.HP,      self.entryData.formEntry, HP,      self.entryData.level)
+    local atkLength =   self:calcLength(Stat.Attack,  self.entryData.formEntry, Attack,  self.entryData.level)
+    local defLength =   self:calcLength(Stat.Defense, self.entryData.formEntry, Defense, self.entryData.level)
+    local mAtkLength =  self:calcLength(Stat.MAtk,    self.entryData.formEntry, MAtk,    self.entryData.level)
+    local mDefLength =  self:calcLength(Stat.MDef,    self.entryData.formEntry, MDef,    self.entryData.level)
+    local speedLength = self:calcLength(Stat.Speed,   self.entryData.formEntry, Speed,   self.entryData.level)
     self.HPBar.Length =      hpLength
     self.AttackBar.Length =  atkLength
     self.DefenseBar.Length = defLength
@@ -141,7 +140,7 @@ function RecruitSummaryStatsWindow:DrawMenu()
     local joinRate = self.speciesEntry.JoinRate
     local color = self:calcChanceColor(joinRate)
     local recruitability = ""
-    if not self.spawnData.recruitable then
+    if not self.entryData.features.recruitable then
         color = "#989898"
         recruitability = "Unrecruitable"
     end

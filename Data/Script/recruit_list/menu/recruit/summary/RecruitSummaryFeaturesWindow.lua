@@ -5,10 +5,10 @@
 
 RecruitSummaryFeaturesWindow = Class('RecruitSummaryFeaturesWindow')
 
-function RecruitSummaryFeaturesWindow:initialize(spawns, index)
+function RecruitSummaryFeaturesWindow:initialize(list, index)
     self.page = 1
-    self.index = math.max(1, math.min(index or 1, #spawns))
-    self.spawns = spawns
+    self.index = math.max(1, math.min(index or 1, #list))
+    self.entries = list
     RecruitSummaryMenu.updateMenuData(self)
 
     self.menu = RogueEssence.Menu.ScriptableMenu(24, 16, 272, 208, function(input) RecruitSummaryMenu.Update(self, input) end)
@@ -22,7 +22,7 @@ function RecruitSummaryFeaturesWindow:initialize(spawns, index)
     self.menu.Elements:Add(RogueEssence.Menu.MenuText("("..self.page.."/"..self.totalPages..")", RogueElements.Loc(Bounds.Width - GraphicsManager.MenuBG.TileWidth, GraphicsManager.MenuBG.TileHeight), RogueElements.DirH.Right))
     self.menu.Elements:Add(RogueEssence.Menu.MenuDivider(RogueElements.Loc(GraphicsManager.MenuBG.TileWidth, GraphicsManager.MenuBG.TileHeight + 12), Bounds.Width - GraphicsManager.MenuBG.TileWidth * 2))
 
-    self.portraitBox  = RogueEssence.Menu.SpeakerPortrait(RecruitSummaryMenu.getBaseForm(self.baseForm), RogueEssence.Content.EmoteStyle(0), RogueElements.Loc(GraphicsManager.MenuBG.TileWidth * 2, GraphicsManager.MenuBG.TileHeight + TITLE_OFFSET), false)
+    self.portraitBox  = RogueEssence.Menu.SpeakerPortrait(RecruitSummaryMenu.getBaseForm(self.entryData.monsterID), RogueEssence.Content.EmoteStyle(0), RogueElements.Loc(GraphicsManager.MenuBG.TileWidth * 2, GraphicsManager.MenuBG.TileHeight + TITLE_OFFSET), false)
     self.nameText     = RogueEssence.Menu.MenuText("Species (genders)", RogueElements.Loc(GraphicsManager.MenuBG.TileWidth * 2 + 48, GraphicsManager.MenuBG.TileHeight + TITLE_OFFSET))
     self.elementsText = RogueEssence.Menu.MenuText("Type", RogueElements.Loc(GraphicsManager.MenuBG.TileWidth * 2 + 48, GraphicsManager.MenuBG.TileHeight + VERT_SPACE * 1 + TITLE_OFFSET))
     self.menu.Elements:Add(self.portraitBox)
@@ -68,24 +68,22 @@ end
 function RecruitSummaryFeaturesWindow:DrawMenu()
     RecruitSummaryMenu.updateMenuData(self)
 
-    self.portraitBox.Speaker = RecruitSummaryMenu.getBaseForm(self.baseForm)
+    self.portraitBox.Speaker = RecruitSummaryMenu.getBaseForm(self.entryData.monsterID)
 
-    local speciesName = RecruitSummaryMenu.GetFullFormName(self.baseForm, self.formEntry, self.spawnData)
-    self.nameText:SetText(speciesName)
+    self.nameText:SetText(self.entryData.speciesName)
 
-    local element1 = _DATA:GetElement(self.formEntry.Element1)
-    local element2 = _DATA:GetElement(self.formEntry.Element2)
+    local element1 = _DATA:GetElement(self.entryData.formEntry.Element1)
+    local element2 = _DATA:GetElement(self.entryData.formEntry.Element2)
     local typeString = element1:GetIconName();
-    if self.formEntry.Element2 ~= _DATA.DefaultElement then typeString = typeString.."/"..element2:GetIconName() end
+    if self.entryData.formEntry.Element2 ~= _DATA.DefaultElement then typeString = typeString.."/"..element2:GetIconName() end
     self.elementsText:SetText(STRINGS:FormatKey("MENU_TEAM_ELEMENT", typeString))
 
     self.levelText:SetText(tostring(self.level))
 
-    local hp = tostring(self.formEntry:GetStat(self.level, RogueEssence.Data.Stat.HP, 0))
-    self.HPText:SetText(hp.."/"..hp)
+    local hp = tostring(self.formEntry:GetStat(self.entryData.level, RogueEssence.Data.Stat.HP, 0))
+    self.HPText:SetText(hp)
 
-    local hunger = 100
-    if self.spawnData.weak then hunger = 35 end
+    local hunger = self.entryData.features.hunger
     self.bellyText:SetText(hunger.."/100")
 
     local skills = self:loadSkills()
@@ -105,27 +103,20 @@ function RecruitSummaryFeaturesWindow:DrawMenu()
 end
 
 function RecruitSummaryFeaturesWindow:loadSkills()
-    local skillsActive = math.max(0, math.min(self.spawnData.movesOff.start, RogueEssence.Dungeon.CharData.MAX_SKILL_SLOTS))
-    local skillsNumber = RogueEssence.Dungeon.CharData.MAX_SKILL_SLOTS
-    if self.spawnData.movesOff.remove then skillsNumber = skillsActive end
-
-    local skillIds = self.formEntry:RollLatestSkills(self.level, self.spawn.SpecifiedSkills)
-    while skillIds.Count>skillsNumber do skillIds:RemoveAt(skillIds.Count-1) end
-
     local skills = {{"-----", "--", "/--"}, {"-----", "--", "/--"}, {"-----", "--", "/--"}, {"-----", "--", "/--"}}
-    for i=0, skillIds.Count-1, 1 do
-        if i >= #skills then break end
-        if skillIds[i] and skillIds[i] ~= "" then
-            local skill = _DATA:GetSkill(skillIds[i])
+    local moves = self.entryData.features.moves
+
+    for i=1, #skills, 1 do
+        if moves[i] and moves[i].id ~= "" then
+            local skill = _DATA:GetSkill(moves[i].id)
             local element = _DATA:GetElement(skill.Data.Element).Symbol
             local skillText = skill.Name:ToLocal()
 
-            local charges = skill.BaseCharges
-            if self.spawnData.weak then charges = math.ceil(charges/2) end
+            local charges = moves[i].pp
             local chargesText = tostring(charges)
             local baseChargesText = "/"..tostring(skill.BaseCharges)
 
-            if i >= skillsActive then
+            if not moves[i].enabled then
                 skillText = "[color=#FF0000]"..skillText.."[color]"
                 chargesText = "[color=#FF0000]"..chargesText.."[color]"
                 baseChargesText = "[color=#FF0000]"..baseChargesText.."[color]"
@@ -133,9 +124,9 @@ function RecruitSummaryFeaturesWindow:loadSkills()
                 skillText = "[color=#00FF00]"..skillText.."[color]"
             end
 
-            skills[i+1][1] = utf8.char(element).."\u{2060}"..skillText
-            skills[i+1][2] = chargesText
-            skills[i+1][3] = baseChargesText
+            skills[i][1] = utf8.char(element).."\u{2060}"..skillText
+            skills[i][2] = chargesText
+            skills[i][3] = baseChargesText
         end
     end
     return skills
@@ -143,20 +134,25 @@ end
 
 function RecruitSummaryFeaturesWindow:loadIntrinsics()
     local n, result = 1, {"", "", ""}
-    if self.spawn.Intrinsic == nil or self.spawn.Intrinsic == "" then
-        local j=1
-        local formIntrinsics = {self.formEntry.Intrinsic1, self.formEntry.Intrinsic2, self.formEntry.Intrinsic3}
-        for _, id in pairs(formIntrinsics) do
-            if not (id == nil or id == "" or id == "none") then
-                local intrinsic = _DATA:GetIntrinsic(id)
-                result[j] = intrinsic:GetColoredName()
-                j = j+1
-            end
-        end
-        n = j-1
-    else
-        local intrinsic = _DATA:GetIntrinsic(self.spawn.Intrinsic)
+    if self.spawnType == "char" then
+        local intrinsic = _DATA:GetIntrinsic(self.element.BaseIntrinsics[0])
         result[1] = intrinsic:GetColoredName()
+    else
+        if self.element.Intrinsic == nil or self.element.Intrinsic == "" then
+            local j=1
+            local formIntrinsics = {self.entryData.formEntry.Intrinsic1, self.entryData.formEntry.Intrinsic2, self.entryData.formEntry.Intrinsic3}
+            for _, id in pairs(formIntrinsics) do
+                if not (id == nil or id == "" or id == "none") then
+                    local intrinsic = _DATA:GetIntrinsic(id)
+                    result[j] = intrinsic:GetColoredName()
+                    j = j+1
+                end
+            end
+            n = j-1
+        else
+            local intrinsic = _DATA:GetIntrinsic(self.element.Intrinsic)
+            result[1] = intrinsic:GetColoredName()
+        end
     end
     return n, result
 end

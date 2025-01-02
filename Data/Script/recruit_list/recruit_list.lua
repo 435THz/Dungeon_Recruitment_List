@@ -62,7 +62,7 @@ function RECRUIT_LIST.toggleShowUnrecruitable()
     end
 end
 
--- Returns the current state of Show Unrecruitable
+-- Returns the current state of Icon Mode
 function RECRUIT_LIST.iconMode()
     SV.Services = SV.Services or {}
     if SV.Services.RecruitList_icon_mode == nil then SV.Services.RecruitList_icon_mode = true end
@@ -420,7 +420,7 @@ function RECRUIT_LIST.compileFullDungeonList(zone, segment)
                 local range = spawnlist:GetSpawnRange(j)
                 local spawn = spawnlist:GetSpawn(j).Spawn -- RogueEssence.LevelGen.MobSpawn
                 local entry = {
-                    spawns = {{
+                    elements = {{
                         data = spawn,
                         dungeon = {zone = zone, segment = segment},
                         range = {
@@ -428,12 +428,13 @@ function RECRUIT_LIST.compileFullDungeonList(zone, segment)
                             max = math.min(range.Max, segmentData.FloorCount)
                         }
                     }},
+                    type = "spawn",
                     species = spawn.BaseForm.Species,
                     mode = RECRUIT_LIST.not_seen, -- defaults to "???". this will be calculated later
                     enabled = false               -- false by default. this will be calculated later
                 }
-                entry.min = entry.spawns[1].range.min
-                entry.max = entry.spawns[1].range.max
+                entry.min = entry.elements[1].range.min
+                entry.max = entry.elements[1].range.max
                 -- check if the mon is recruitable
                 local recruitable = true
                 local features = spawn.SpawnFeatures
@@ -457,7 +458,7 @@ function RECRUIT_LIST.compileFullDungeonList(zone, segment)
                     local spawn = spawns:GetSpawn(s)
 
                     local entry = {
-                        spawns = {{
+                        elements = {{
                             data = spawn,
                             dungeon = {zone = zone, segment = segment},
                             range = {
@@ -465,12 +466,13 @@ function RECRUIT_LIST.compileFullDungeonList(zone, segment)
                                 max = math.min(range.Max, segmentData.FloorCount)
                             }
                         }},
+                        type = "spawn",
                         species = spawn.BaseForm.Species,
                         mode = RECRUIT_LIST.not_seen, -- defaults to "???". this will be calculated later
                         enabled = false               -- false by default. this will be calculated later
                     }
-                    entry.min = entry.spawns[1].range.min
-                    entry.max = entry.spawns[1].range.max
+                    entry.min = entry.elements[1].range.min
+                    entry.max = entry.elements[1].range.max
                     -- check if the mon is recruitable
                     local recruitable = true
                     local features = spawn.SpawnFeatures
@@ -511,7 +513,7 @@ function RECRUIT_LIST.compileFullDungeonList(zone, segment)
                 local next = entry[i]
                 if current.max+1 >= next.min then
                     current.max = math.max(current.max, next.max)
-                    for _, spawn in pairs(next.spawns) do table.insert(current.spawns, spawn) end
+                    for _, element in pairs(next.elements) do table.insert(current.elements, element) end
                 else
                     table.insert(list,current)
                     current = next
@@ -641,7 +643,8 @@ function RECRUIT_LIST.compileFloorList()
     for i = 0, teams.Count-1, 1 do
         local team = teams[i].Players
         for j = 0, team.Count-1, 1 do
-            local member = team[j].BaseForm.Species
+            local char = team[j]
+            local member = char.BaseForm.Species
             local unlockState = _DATA.Save:GetMonsterUnlock(member)
             local mode = RECRUIT_LIST.hide -- default is to not show non-respawning mons if unknown
 
@@ -656,27 +659,38 @@ function RECRUIT_LIST.compileFloorList()
                 end
             end
             -- do not show in recruit list if cannot recruit, no matter the list or mode
-            if team[j].Unrecruitable then mode = RECRUIT_LIST.hide end
+            if char.Unrecruitable then mode = RECRUIT_LIST.hide end
 
             -- add the member and its display mode to the list
-            if mode> RECRUIT_LIST.hide and not list.entries[member] then
-                table.insert(list.keys, member)
-                list.entries[member] = {
-                    mode = mode
-                }
+            if mode > RECRUIT_LIST.hide then
+                if not list.entries[member] then
+                    table.insert(list.keys, member)
+                    list.entries[member] = {
+                        chars = {{data = char}},
+                        mode = mode,
+                        enabled = true
+                    }
+                elseif list.entries[member].chars then
+                    table.insert(list.entries[member].chars, {data = char})
+                end
             end
         end
     end
 
     local ret = {}
     for _,key in pairs(list.keys) do
-        local enabled = list.entries[key].enabled
-        if list.entries[key].spawn == nil then enabled = nil end
+        local entryList = list.entries[key].spawn
+        local entryType = "spawn"
+        if entryList == nil then
+            entryList = list.entries[key].chars
+            entryType = "chars"
+        end
         local entry = {
-            spawns = list.entries[key].spawn,
+            type = entryType,
+            elements = entryList,
             species = key,
             mode = list.entries[key].mode,
-            enabled = enabled
+            enabled = list.entries[key].enabled
         }
         table.insert(ret,entry)
     end
