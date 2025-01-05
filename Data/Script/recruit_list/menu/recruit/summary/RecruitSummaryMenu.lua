@@ -286,17 +286,17 @@ function RecruitSummaryMenu.Update(window, input, failSound)
             input:JustPressed(RogueEssence.FrameInput.InputType.Cancel) then
         _GAME:SE("Menu/Cancel")
         _MENU:RemoveMenu()
-    elseif RogueEssence.Menu.InteractableMenu.IsInputting(input, RogueElements.Dir8.Left) then
+    elseif RogueEssence.Menu.InteractableMenu.IsInputting(input, LUA_ENGINE:MakeLuaArray(RogueElements.Dir8, {RogueElements.Dir8.Left})) then
         _GAME:SE("Menu/Skip")
         local newPage = ((window.page-2) % window.totalPages) + 1
         local newWindow = math.min(newPage, #RecruitSummaryMenu.pageList)
         _MENU:ReplaceMenu(RecruitSummaryMenu.pageList[newWindow]:new(window.entries, window.index, newPage, window.selected).menu)
-    elseif RogueEssence.Menu.InteractableMenu.IsInputting(input, RogueElements.Dir8.Right) then
+    elseif RogueEssence.Menu.InteractableMenu.IsInputting(input, LUA_ENGINE:MakeLuaArray(RogueElements.Dir8, {RogueElements.Dir8.Right})) then
         _GAME:SE("Menu/Skip")
         local newPage = ((window.page) % window.totalPages) + 1
         local newWindow = math.min(newPage, #RecruitSummaryMenu.pageList)
         _MENU:ReplaceMenu(RecruitSummaryMenu.pageList[newWindow]:new(window.entries, window.index, newPage, window.selected).menu)
-    elseif RogueEssence.Menu.InteractableMenu.IsInputting(input, RogueElements.Dir8.Up) then
+    elseif RogueEssence.Menu.InteractableMenu.IsInputting(input, LUA_ENGINE:MakeLuaArray(RogueElements.Dir8, {RogueElements.Dir8.Up})) then
         if #window.entries > 1 then
             _GAME:SE("Menu/Skip")
             window.index = ((window.index-2) % #window.entries) + 1
@@ -304,7 +304,7 @@ function RecruitSummaryMenu.Update(window, input, failSound)
         else
             _GAME:SE(failSound)
         end
-    elseif RogueEssence.Menu.InteractableMenu.IsInputting(input, RogueElements.Dir8.Down) then
+    elseif RogueEssence.Menu.InteractableMenu.IsInputting(input, LUA_ENGINE:MakeLuaArray(RogueElements.Dir8, {RogueElements.Dir8.Down})) then
         if #window.entries > 1 then
             _GAME:SE("Menu/Skip")
             window.index = ((window.index) % #window.entries) + 1

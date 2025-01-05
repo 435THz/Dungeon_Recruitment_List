@@ -92,14 +92,14 @@ function RecruitSummaryLearnsetWindow:Update(input)
     self:UpdateMouse(input)
 
     local changed = false
-    if RogueEssence.Menu.InteractableMenu.IsInputting(input, RogueElements.Dir8.Up) then
+    if RogueEssence.Menu.InteractableMenu.IsInputting(input, LUA_ENGINE:MakeLuaArray(RogueElements.Dir8, {RogueElements.Dir8.Up})) then
         if self.selected > 1 then
             self:select(self.selected-1)
             changed = true
         else
             self:select(RecruitSummaryMenu.SLOTS_PER_PAGE)
         end
-    elseif RogueEssence.Menu.InteractableMenu.IsInputting(input, RogueElements.Dir8.Down) then
+    elseif RogueEssence.Menu.InteractableMenu.IsInputting(input, LUA_ENGINE:MakeLuaArray(RogueElements.Dir8, {RogueElements.Dir8.Down})) then
         if self.selected < #self.skillIds then
             self:select(self.selected+1)
             changed = true
