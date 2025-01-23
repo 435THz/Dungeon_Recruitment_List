@@ -250,7 +250,7 @@ function RecruitSummaryMenu.loadCharSkills(char)
     local skillList = char.BaseSkills
     for i=0, skillList.Count-1, 1 do
         if skillList[i].SkillNum ~= "" then
-            skills[i+1] = {id = skillList[i].SkillNum, pp = skillList[i].Charges, enabled = not (char.Skills[i].Element.Enabled or char.Skills[i].Element.Sealed)}
+            skills[i+1] = {id = skillList[i].SkillNum, pp = skillList[i].Charges, enabled = char.Skills[i].Element.Enabled and not char.Skills[i].Element.Sealed}
         end
     end
     return skills
