@@ -87,7 +87,7 @@ function RecruitSummaryFeaturesWindow:DrawMenu()
     self.bellyText:SetText(hunger.."/100")
 
     local skills = self:loadSkills()
-    for i = 1, RogueEssence.Dungeon.CharData.MAX_SKILL_SLOTS, 1 do
+    for i = 1, math.min(#skills, RogueEssence.Dungeon.CharData.MAX_SKILL_SLOTS), 1 do
         self["skillText"..i]:SetText(skills[i][1])
         self["chargesTextL"..i]:SetText(skills[i][2])
         self["chargesTextR"..i]:SetText(skills[i][3])
