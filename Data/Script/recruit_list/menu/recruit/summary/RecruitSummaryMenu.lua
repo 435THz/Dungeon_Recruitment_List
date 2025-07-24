@@ -165,7 +165,7 @@ function RecruitSummaryMenu.GetFullFormName(form, entry, data, genderInParenthes
     local name = _DATA:GetMonster(form.Species).Name:ToLocal()
     if not data.recruitable then
         name = "[color=#989898]"..name
-    elseif _DATA.Save:GetMonsterFormUnlock(form) == RogueEssence.Data.GameProgress.UnlockState.Completed then
+    elseif _DATA.Save:GetMonsterUnlock(form.Species) == RogueEssence.Data.GameProgress.UnlockState.Completed then
         name = "[color=#00FF00]"..name else
         name = "[color=#00FFFF]"..name end
 
