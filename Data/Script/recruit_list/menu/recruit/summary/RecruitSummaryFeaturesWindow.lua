@@ -5,6 +5,8 @@
 
 RecruitSummaryFeaturesWindow = Class('RecruitSummaryFeaturesWindow')
 
+---@param list {spawn:any|nil,char:any|nil,level:integer,dungeon:{zone:string,segment:integer},floors:{min:integer,max:integer}[]}
+---@param index integer
 function RecruitSummaryFeaturesWindow:initialize(list, index)
     self.page = 1
     self.index = math.max(1, math.min(index or 1, #list))

@@ -17,6 +17,8 @@ RecruitSummaryMenu.FeatureUnrecruitable = luanet.import_type('PMDC.LevelGen.MobS
 RecruitSummaryMenu.FeatureWeak = luanet.import_type('PMDC.LevelGen.MobSpawnWeak')
 RecruitSummaryMenu.pageList = {RecruitSummaryFeaturesWindow, RecruitSummaryStatsWindow, RecruitSummaryLearnsetWindow}
 
+--- Initializes the RecruitSummaryMenu data set and then calls RecruitSummaryFeaturesWindow
+---@param entry fullDungeonSpawn_entry|floorSpawn_entry
 function RecruitSummaryMenu.run(entry)
     RecruitSummaryMenu.pages = nil
     local entries
@@ -24,7 +26,11 @@ function RecruitSummaryMenu.run(entry)
     _MENU:AddMenu(RecruitSummaryFeaturesWindow:new(entries, 1).menu, false)
 end
 
+--- Loads the list of entries that will then be used by menus
+---@param entry fullDungeonSpawn_entry|floorSpawn_entry
+---@return {spawn:any|nil,char:any|nil,level:integer,dungeon:{zone:string,segment:integer},floors:{min:integer,max:integer}[]}
 function RecruitSummaryMenu.loadSpawnEntries(entry)
+    ---@type {spawn:any|nil,char:any|nil,level:integer,dungeon:{zone:string,segment:integer},floors:{min:integer,max:integer}[]}
     local list = {}
     for _, element in pairs(entry.elements) do
         if entry.type == "spawn" then
@@ -36,6 +42,7 @@ function RecruitSummaryMenu.loadSpawnEntries(entry)
                     table.insert(list, {spawn = element.data, level = lv, dungeon = {zone = loc.zone, segment = loc.segment}, floors = {{min = f, max = f}}})
                 end
             else
+                ---@type table<integer, table<integer, boolean>>
                 local levels = {}
                 for f = element.range.min, element.range.max, 1 do
                     local lvl_list = RecruitSummaryMenu.loadSpawnLevels(element.data, f)
@@ -45,7 +52,8 @@ function RecruitSummaryMenu.loadSpawnEntries(entry)
                     end
                 end
                 for lvl, f_list in pairs(levels) do
-                    local element = {spawn = element.data, level = lvl, dungeon = element.dungeon, floors = {}}
+                    ---@type {spawn:any,level:integer,dungeon:{zone:string,segment:integer},floors:{min:integer,max:integer}[]}
+                    local elem = {spawn = element.data, level = lvl, dungeon = element.dungeon, floors = {}}
                     local floors = {}
                     for n in pairs(f_list) do table.insert(floors, n) end
                     table.sort(floors)
@@ -57,12 +65,12 @@ function RecruitSummaryMenu.loadSpawnEntries(entry)
                         if current.max+1 >= f then
                             current.max = math.max(current.max, f)
                         else
-                            table.insert(element.floors, current)
+                            table.insert(elem.floors, current)
                             current = { min = f, max = f}
                         end
                     end
-                    table.insert(element.floors, current)
-                    table.insert(list, element)
+                    table.insert(elem.floors, current)
+                    table.insert(list, elem)
                 end
             end
         else
@@ -74,6 +82,9 @@ function RecruitSummaryMenu.loadSpawnEntries(entry)
     return list
 end
 
+---@param spawn any
+---@param floor integer
+---@return integer[]
 function RecruitSummaryMenu.loadSpawnLevels(spawn, floor)
     local levelList = LUA_ENGINE:MakeList(spawn.Level:EnumerateOutcomes())
     local extraLevels = 0
@@ -91,6 +102,7 @@ function RecruitSummaryMenu.loadSpawnLevels(spawn, floor)
     return ret
 end
 
+---@param window any
 function RecruitSummaryMenu.updateMenuData(window)
     window.entryData = {
         monsterID = nil,
@@ -103,7 +115,7 @@ function RecruitSummaryMenu.updateMenuData(window)
     window.current = window.entries[window.index] --spawn entry
     window.spawnType = "spawn"
     if not window.current.spawn then window.spawnType = "char" end
-    window.element = window.current[window.spawnType] --MobSpawn or Character TODO refactor all to element
+    window.element = window.current[window.spawnType] --MobSpawn or Character
 
     window.level = window.current.level --int
 
@@ -122,6 +134,8 @@ function RecruitSummaryMenu.updateMenuData(window)
     window.entryData.speciesNameGenders = RecruitSummaryMenu.GetFullFormName(window.entryData.monsterID, window.entryData.formEntry, window.entryData.features, true)
 end
 
+---@param formEntry any
+---@return integer
 function RecruitSummaryMenu.getPages(formEntry)
     if RecruitSummaryMenu.pages == nil then
         RecruitSummaryMenu.pages = #RecruitSummaryMenu.pageList - 1 +  math.ceil( RecruitSummaryMenu.getEligibleSkills(formEntry) / RecruitSummaryMenu.SLOTS_PER_PAGE)
@@ -129,6 +143,8 @@ function RecruitSummaryMenu.getPages(formEntry)
     return RecruitSummaryMenu.pages
 end
 
+---@param formEntry any
+---@return integer
 function RecruitSummaryMenu.getEligibleSkills(formEntry)
     local total = 0
     for levelUpSkill in luanet.each(formEntry.LevelSkills) do
@@ -140,12 +156,17 @@ function RecruitSummaryMenu.getEligibleSkills(formEntry)
     return total
 end
 
+---@param form MonsterID
+---@param entry any
+---@param data {boost:{mhp:integer,atk:integer,def:integer, sat:integer, sdf:integer, spd:integer},moves:{id:string, pp:integer, enabled:boolean}[],recruitable:boolean,hunger:integer}
+---@param genderInParentheses boolean?
+---@return unknown
 function RecruitSummaryMenu.GetFullFormName(form, entry, data, genderInParentheses)
     local baseForm = RecruitSummaryMenu.getBaseForm(form)
     local name = _DATA:GetMonster(form.Species).Name:ToLocal()
     if not data.recruitable then
         name = "[color=#989898]"..name
-    elseif _DATA.Save:GetMonsterUnlock(form.Species) == RogueEssence.Data.GameProgress.UnlockState.Completed then
+    elseif _DATA.Save:GetMonsterFormUnlock(form) == RogueEssence.Data.GameProgress.UnlockState.Completed then
         name = "[color=#00FF00]"..name else
         name = "[color=#00FFFF]"..name end
 
@@ -165,6 +186,8 @@ function RecruitSummaryMenu.GetFullFormName(form, entry, data, genderInParenthes
     return name
 end
 
+---@param form any actually a MonsterID object
+---@return string
 function RecruitSummaryMenu.GetPossibleGenders(form)
     local genders = form:GetPossibleGenders()
     local prefix, text, suffix = "", "", ""
@@ -181,6 +204,8 @@ function RecruitSummaryMenu.GetPossibleGenders(form)
     return prefix..text..suffix
 end
 
+---@param baseForm MonsterID
+---@return MonsterID
 function RecruitSummaryMenu.getBaseForm(baseForm)
     local default = _DATA.DefaultMonsterID
     local skin = baseForm.Skin
@@ -190,6 +215,11 @@ function RecruitSummaryMenu.getBaseForm(baseForm)
     return RogueEssence.Dungeon.MonsterID(baseForm.Species, baseForm.Form, skin, gender)
 end
 
+---@param element any
+---@param formEntry any
+---@param level integer
+---@param isChar boolean
+---@return {boost:{mhp:integer,atk:integer,def:integer, sat:integer, sdf:integer, spd:integer},moves:{id:string, pp:integer, enabled:boolean}[],recruitable:boolean,hunger:integer}
 function RecruitSummaryMenu.loadFeatures(element, formEntry, level, isChar)
     local data = {
         boost = {mhp = 0, atk = 0, def = 0, sat = 0, sdf = 0, spd = 0},
@@ -245,6 +275,8 @@ function RecruitSummaryMenu.loadFeatures(element, formEntry, level, isChar)
     return data
 end
 
+---@param char any
+---@return {id:string, pp:integer, enabled:boolean}
 function RecruitSummaryMenu.loadCharSkills(char)
     local skills = {}
     local skillList = char.BaseSkills
@@ -256,6 +288,12 @@ function RecruitSummaryMenu.loadCharSkills(char)
     return skills
 end
 
+---@param spawn any
+---@param formEntry any
+---@param level integer
+---@param offStart integer
+---@param offRemove integer
+---@return {id:string, pp:integer, enabled:boolean}[]
 function RecruitSummaryMenu.loadSpawnSkills(spawn, formEntry, level, offStart, offRemove)
     local skillsActive = math.max(0, math.min(offStart, RogueEssence.Dungeon.CharData.MAX_SKILL_SLOTS))
     local skillsNumber = RogueEssence.Dungeon.CharData.MAX_SKILL_SLOTS
@@ -280,6 +318,9 @@ function RecruitSummaryMenu.loadSpawnSkills(spawn, formEntry, level, offStart, o
     return skills
 end
 
+---@param window any
+---@param input any
+---@param failSound string?
 function RecruitSummaryMenu.Update(window, input, failSound)
     if failSound == nil then failSound = "Menu/Cancel" end
     if input:JustPressed(RogueEssence.FrameInput.InputType.Menu) or

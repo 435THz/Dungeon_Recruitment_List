@@ -9,6 +9,12 @@ RECRUIT_LIST = {}
     the routine used to show the list itself
 ]]--
 
+---@alias MonsterID {Species:string,Form:integer,Skin:string,Gender:any}
+---@alias segment_entry {floorsCleared:integer,totalFloors:integer,completed:boolean,name:string}
+---@alias zone_order_entry {zone:string,cap:boolean,level:integer,length:integer,name:string}
+---@alias fullDungeonSpawn_entry {elements:{data:any,dungeon:{zone:string,segment:integer},range:{min:integer,max:integer}}[],type:string,monster:MonsterID,mode:integer,enabled:boolean,min:integer,max:integer}
+---@alias floorSpawn_entry {elements:{data:any,dungeon:{zone:string,segment:integer},range:{min:integer,max:integer}}[],type:string,monster:MonsterID,mode:integer,enabled:boolean}
+
 --- ----------------------------------------------
 --- Constants
 --- ----------------------------------------------
@@ -21,33 +27,34 @@ RECRUIT_LIST.seen =                    4
 RECRUIT_LIST.extra_seen =              5
 RECRUIT_LIST.obtained =                6
 RECRUIT_LIST.extra_obtained =          7
-RECRUIT_LIST.obtainedMultiForm =       8
-RECRUIT_LIST.extra_obtainedMultiForm = 9
 
 --- -----------------------------------------------
 --- SV structure
 --- -----------------------------------------------
--- Returns if the game has been completed or not
+--- Returns if the game has been completed or not
+--- @return boolean #true if guidmaster_summit.GameCompleted is true, false otherwise
 function RECRUIT_LIST.gameCompleted()
-    if SV.guildmaster_summit.GameComplete == nil then SV.guildmaster_summit.GameComplete = false end -- if true, hides the recruit list if it's the player's first time on a floor
+    if SV.guildmaster_summit.GameComplete == nil then SV.guildmaster_summit.GameComplete = false end
     return SV.guildmaster_summit.GameComplete
 end
 
--- Returns the current state of Scanner Mode
+--- Returns the current state of Scanner Mode
+--- @return boolean #true if scanner mode is enabled, false otherwise
 function RECRUIT_LIST.scannerMode()
     SV.Services = SV.Services or {}
     if SV.Services.RecruitList_scanner_mode == nil then SV.Services.RecruitList_scanner_mode = false end -- if true, allows the player to view the summary of any obtained mon's spawn entry
     return SV.Services.RecruitList_scanner_mode
 end
 
--- Toggles the current state of Scanner Mode
+--- Toggles the current state of Scanner Mode
 function RECRUIT_LIST.toggleScannerMode()
     if RECRUIT_LIST.scannerMode() then SV.Services.RecruitList_scanner_mode = false else
         SV.Services.RecruitList_scanner_mode = true
     end
 end
 
--- Returns the current state of Show Unrecruitable
+--- Returns the current state of Show Unrecruitable
+--- @return boolean #true if show_unrecruitable is true or the game is in dev mode, false otherwise
 function RECRUIT_LIST.showUnrecruitable()
     SV.Services = SV.Services or {}
     if SV.Services.RecruitList_show_unrecruitable == nil then SV.Services.RecruitList_show_unrecruitable = false end
@@ -55,14 +62,15 @@ function RECRUIT_LIST.showUnrecruitable()
     return SV.Services.RecruitList_show_unrecruitable or RogueEssence.DiagManager.Instance.DevMode
 end
 
--- Toggles the current state of Show Unrecruitable
+--- Toggles the current state of Show Unrecruitable
 function RECRUIT_LIST.toggleShowUnrecruitable()
     if RECRUIT_LIST.showUnrecruitable() then SV.Services.RecruitList_show_unrecruitable = false else
         SV.Services.RecruitList_show_unrecruitable = true
     end
 end
 
--- Returns the current state of Icon Mode
+--- Returns the current state of Icon Mode
+--- @return boolean #true if icon mode is enabled, false otherwise
 function RECRUIT_LIST.iconMode()
     SV.Services = SV.Services or {}
     if SV.Services.RecruitList_icon_mode == nil then SV.Services.RecruitList_icon_mode = true end
@@ -76,13 +84,16 @@ function RECRUIT_LIST.toggleIconMode()
     end
 end
 
-
--- Returns true if the string is a valid zone index, false otherwise
+--- Checks if a zone id corresponds to an existing zone
+--- @param zone string the zone id to check for
+--- @return boolean #true if the string is a valid zone index, false otherwise
 function RECRUIT_LIST.zoneExists(zone)
     return not not _DATA.DataIndices[RogueEssence.Data.DataManager.DataType.Zone]:ContainsKey(zone)
 end
 
--- Returns the ZoneEntrySummary associated to the given zone
+--- Returns the ZoneEntrySummary associated to the given zone id
+--- @param zone string the zone id to check for
+--- @return any #the ZoneEntrySummary of the zone
 function RECRUIT_LIST.getZoneSummary(zone)
     if RECRUIT_LIST.zoneExists(zone) then
         return _DATA.DataIndices[RogueEssence.Data.DataManager.DataType.Zone]:Get(zone)
@@ -90,28 +101,30 @@ function RECRUIT_LIST.getZoneSummary(zone)
     return nil
 end
 
--- Initializes the basic dungeon list data structure
+--- Initializes the basic dungeon list data structure
 function RECRUIT_LIST.generateDungeonListBaseSV()
     SV.Services = SV.Services or {}
-    SV.Services.RecruitList = SV.Services.RecruitList or {}
+    SV.Services.RecruitList = SV.Services.RecruitList or {} --[[@as table<string, table<integer, segment_entry>>]]
 end
 
--- Initializes the data slot for the supplied segment if not already present
+--- Initializes the data slot for the supplied segment if not already present
+--- @param zone string the zone to initialize
+--- @param segment integer the segment to initialize
 function RECRUIT_LIST.generateDungeonListSV(zone, segment)
     RECRUIT_LIST.generateDungeonListBaseSV()
-    if not RECRUIT_LIST.zoneExists(zone) then return end            -- abort if zone does not exist
+    if not RECRUIT_LIST.zoneExists(zone) then return end  -- abort if zone does not exist
     SV.Services.RecruitList[zone] = SV.Services.RecruitList[zone] or {}
 
     -- update old data if present
     local defaultFloor = 0
     if type(SV.Services.RecruitList[zone][segment]) == "number" then
-        defaultFloor = SV.Services.RecruitList[zone][segment]
+        defaultFloor = SV.Services.RecruitList[zone][segment] --[[@as integer]]
         SV.Services.RecruitList[zone][segment] = nil
     end
 
     if not SV.Services.RecruitList[zone][segment] then
+        if segment < 0 or segment >= _DATA:GetZone(zone).Segments.Count then return end -- abort if segment does not exist
         local segment_data = _DATA:GetZone(zone).Segments[segment]
-        if segment_data == nil then return end         -- abort if segment does not exist
             SV.Services.RecruitList[zone][segment] = {
                 floorsCleared = defaultFloor,           -- number of floors cleared in the dungeon
                 totalFloors = segment_data.FloorCount,  -- total amount of floors in this segment
@@ -124,7 +137,9 @@ function RECRUIT_LIST.generateDungeonListSV(zone, segment)
     end
 end
 
--- returns the name of the provided segment
+--- Returns the name of the provided segment
+--- @param segment_data any a ZoneSegmentBase object
+--- @return string #the localized name of the segment, without floor number
 function RECRUIT_LIST.build_segment_name(segment_data)
     local segSteps = segment_data.ZoneSteps
     local sub_name = {}
@@ -154,6 +169,9 @@ function RECRUIT_LIST.build_segment_name(segment_data)
     return stringbuild
 end
 
+--- Updates a specific segment's name. Usually called after changing language.
+--- @param zone string the zone that contains the segment to update
+--- @param segment integer the segment to update
 function RECRUIT_LIST.updateSegmentName(zone, segment)
     if not RECRUIT_LIST.zoneExists(zone) then return end
     local segment_data = _DATA:GetZone(zone).Segments[segment]
@@ -163,13 +181,17 @@ function RECRUIT_LIST.updateSegmentName(zone, segment)
     SV.Services.RecruitList[zone][segment].name = name
 end
 
--- Returns the basic dungeon list data structure
+--- Returns the basic dungeon list data structure
+--- @return table<string, table<integer, segment_entry>>
 function RECRUIT_LIST.getDungeonListSV()
     RECRUIT_LIST.generateDungeonListBaseSV()
     return SV.Services.RecruitList
 end
 
--- Returns the number of floors cleared on the provided segment
+--- Returns the number of floors cleared on the provided segment
+--- @param zone string the zone that contains the segment to read data from
+--- @param segment integer the segment to read data from
+---@return integer the number of floors cleared in the segment
 function RECRUIT_LIST.getFloorsCleared(zone, segment)
     RECRUIT_LIST.generateDungeonListSV(zone, segment)
     if SV.Services.RecruitList[zone] == nil then return 0 end
@@ -177,15 +199,20 @@ function RECRUIT_LIST.getFloorsCleared(zone, segment)
     return SV.Services.RecruitList[zone][segment].floorsCleared
 end
 
--- Updates the number of floors cleared on the provided segment
--- if the provided floor number is higher than the currently stored one
+--- Updates the number of floors cleared on the provided segment
+--- if the provided floor number is higher than the currently stored one
+--- @param zone string the zone that contains the segment to update
+--- @param segment integer the segment to update
+--- @param floor integer the new number of completed floors. Only stored if higher than the old one
 function RECRUIT_LIST.updateFloorsCleared(zone, segment, floor)
     if RECRUIT_LIST.checkFloor(zone, segment, floor) then
         SV.Services.RecruitList[zone][segment].floorsCleared = floor
     end
 end
 
--- Marks the provided segment as a completed area
+--- Marks the provided segment as a completed area
+--- @param zone string the zone that contains the segment to update
+--- @param segment integer the segment to update
 function RECRUIT_LIST.markAsCompleted(zone, segment)
     local sv = RECRUIT_LIST.getDungeonListSV()
     if sv[zone] and sv[zone][segment] then
@@ -193,9 +220,13 @@ function RECRUIT_LIST.markAsCompleted(zone, segment)
     end
 end
 
--- Checks if the supplied location floor is higher than the highest reached floor in the current segment
--- if no location is supplied then it uses the current location
--- location is a table of properties {string zone, int segment, int floor}
+--- Checks if the supplied location floor is higher than the highest reached floor in the current segment.
+--- if no complete location is supplied then it uses the current location
+--- location is a table of properties {string zone, int segment, int floor}
+--- @param zone string? the zone that contains the segment to check
+--- @param segment integer? the segment to check
+--- @param floor integer? the floor to check for
+--- @return boolean #true if floor is greater than the segment's stored value
 function RECRUIT_LIST.checkFloor(zone, segment, floor)
     if not zone or not segment or not floor then
         local loc = RECRUIT_LIST.getCurrentMap()
@@ -206,14 +237,10 @@ function RECRUIT_LIST.checkFloor(zone, segment, floor)
     return RECRUIT_LIST.getFloorsCleared(zone, segment) < floor
 end
 
--- Marks the segment as pending for an extra spawn list update.
-function RECRUIT_LIST.markForUpdate(zone, segment)
-    RECRUIT_LIST.markAsExplored(zone, segment)
-    RECRUIT_LIST.generateDungeonListSV(zone, segment)
-    SV.Services.RecruitList[zone][segment].reload = true
-end
-
--- Returns a segment's spawn list data structure
+--- Returns a segment's spawn list data structure
+--- @param zone string the zone to get
+--- @param segment integer the segment to get
+--- @return segment_entry|nil #the data associated to the segment, or nil if there is none
 function RECRUIT_LIST.getSegmentData(zone, segment)
     RECRUIT_LIST.generateDungeonListSV(zone, segment)
     if SV.Services.RecruitList[zone] == nil then return nil end
@@ -221,31 +248,38 @@ function RECRUIT_LIST.getSegmentData(zone, segment)
 end
 
 -- Returns whether or not a segment's spawn list data structure exists
+--- @param zone string the zone to check
+--- @param segment integer the segment to check
+--- @return boolean #true if there is data associated to the segment, false otherwise
 function RECRUIT_LIST.segmentDataExists(zone, segment)
-    return SV.Services and SV.Services.RecruitList and SV.Services.RecruitList[zone]
-            and SV.Services.RecruitList[zone][segment]
+    return SV.Services ~= nil and SV.Services.RecruitList ~= nil and SV.Services.RecruitList[zone] ~= nil
+            and SV.Services.RecruitList[zone][segment] ~= nil
 end
 
 
--- Generates the data slot for dungeon order if not already present
+--- Generates the data slot for dungeon order if not already present
 function RECRUIT_LIST.generateOrderSV()
     SV.Services = SV.Services or {}
-    SV.Services.RecruitList_DungeonOrder = SV.Services.RecruitList_DungeonOrder or {}
+    SV.Services.RecruitList_DungeonOrder = SV.Services.RecruitList_DungeonOrder or {} --[[@as zone_order_entry[] ]]
 end
 
--- Returns the ordered list of all explored dungeons
+--- Returns the ordered list of all explored dungeons
+--- @return zone_order_entry[] #the order list
 function RECRUIT_LIST.getDungeonOrder()
     RECRUIT_LIST.generateOrderSV()
     return SV.Services.RecruitList_DungeonOrder
 end
 
--- Checks if the player has visited at list one dungeon segment that contains spawn data
+--- Checks if the player has visited at list one dungeon segment that contains spawn data
+--- @return boolean #true if the dungeon order has at least 1 entry, false otherwise
 function RECRUIT_LIST.hasVisitedValidDungeons()
     return #RECRUIT_LIST.getDungeonOrder() > 0
 end
 
--- Adds the supplied dungeon to the ordered list of explored areas if the section
--- has spawn data and the zone is not already part of the list
+--- Adds the supplied dungeon to the ordered list of explored areas if the segment
+--- has spawn data and the zone is not already part of the list
+--- @param zone string the zone to register
+--- @param segment integer the segment to check for
 function RECRUIT_LIST.markAsExplored(zone, segment)
 
     if RECRUIT_LIST.isSegmentValid(zone, segment) then
@@ -288,7 +322,10 @@ function RECRUIT_LIST.markAsExplored(zone, segment)
     end
 end
 
--- sort function that sorts dungeons by recommended level and length, leaving reset dungeons always last
+--- sort function that sorts dungeons by recommended level and length, leaving reset dungeons always last
+--- @param a zone_order_entry a zone order entry
+--- @param b zone_order_entry another zone order entry
+--- @return boolean #true if ``a`` should be placed in the order before ``b``, false otherwise
 function RECRUIT_LIST.sortZones(a, b)
     -- put level-reset dungeons at the end
     if a.cap ~= b.cap then return b.cap end
@@ -303,7 +340,8 @@ end
 --- -----------------------------------------------
 --- Functions
 --- -----------------------------------------------
--- returns the current map as a table of properties {string zone, int segment, int floor}
+--- returns the current map as a table of properties ``{string zone, int segment, int floor}``
+--- @return {zone:string,segment:integer,floor:integer} the current locatioon
 function RECRUIT_LIST.getCurrentMap()
     local mapData = {
         zone = _ZONE.CurrentZoneID,
@@ -313,7 +351,7 @@ function RECRUIT_LIST.getCurrentMap()
     return mapData
 end
 
--- this stays for debug purposes
+--- Debug function. Pretty prints tables.
 function RL_printall(table, level, root)
     if root == nil then print(" ") end
 
@@ -336,20 +374,22 @@ function RL_printall(table, level, root)
     if root == nil then print(" ") end
 end
 
--- Checks if the specified dungeon segment has been visited and contains spawn data
+--- Checks if the specified dungeon segment has been visited and contains spawn data
+--- @param zone string the zone to check for
+--- @param segment integer the segment to check for
+--- @param segmentData any? the ZoneSegmentBase object associated to the location. It will be loaded if not already.
+--- @param includeNotExplored? boolean if true, unexplored segments will also count as valid
+--- @return boolean #true if the dungeon has spawn data and either has been visited, or ``includeNotExplored`` is set
 function RECRUIT_LIST.isSegmentValid(zone, segment, segmentData, includeNotExplored)
-    if not segmentData then                                 --load data now if it was not already done
+    if not segmentData then --load data now if it was not already done
         if not RECRUIT_LIST.zoneExists(zone) then return false end
+        if segment < 0 or segment >= _DATA:GetZone(zone).Segments.Count then return false end
         segmentData = _DATA:GetZone(zone).Segments[segment]
     end
-    if segmentData == nil then return false end
 
     if not includeNotExplored and (not SV.Services or not SV.Services.RecruitList or not SV.Services.RecruitList[zone] or not SV.Services.RecruitList[zone][segment]) then return false end
 
     if not includeNotExplored and RECRUIT_LIST.getSegmentData(zone, segment).floorsCleared <= 0 then return false end
-    if RECRUIT_LIST.getSegmentData(zone, segment).special and #RECRUIT_LIST.getSegmentData(zone, segment).special>0 then
-        return true
-    end
     local segSteps = segmentData.ZoneSteps
     for i = 0, segSteps.Count-1, 1 do
         local step = segSteps[i]
@@ -360,9 +400,10 @@ function RECRUIT_LIST.isSegmentValid(zone, segment, segmentData, includeNotExplo
     return false
 end
 
--- Returns a list of all segments of a zone that have a spawn property and of which
--- at least 1 floor was completed.
--- Return is a list of tables with properties {int id, string name, boolean completed}
+--- Returns a list of all segments of a zone that have a spawn property and of which
+--- at least 1 floor was completed.
+--- @param zone string the zone to extract data of
+--- @return {id:integer,name:string,completed:boolean,floorsCleared:integer}[] a list of completion data
 function RECRUIT_LIST.getValidSegments(zone)
     local list = {}
     if not RECRUIT_LIST.zoneExists(zone) then return list end
@@ -386,6 +427,7 @@ function RECRUIT_LIST.getValidSegments(zone)
         for i=0, segmentsData.Count-1, 1 do
             local seg_data = RECRUIT_LIST.getSegmentData(zone, i)
             if RECRUIT_LIST.isSegmentValid(zone, i, nil, true) then
+                ---@cast seg_data segment_entry
                 local entry = {
                     id = i,
                     name = seg_data.name,
@@ -399,11 +441,14 @@ function RECRUIT_LIST.getValidSegments(zone)
     return list
 end
 
--- Extracts a list of all mons spawnable in a dungeon, then maps them to the display mode that
--- should be used for that mon's name in the menu. Includes only mons that can respawn.
+--- Extracts a list of all mons spawnable in a dungeon, then maps them to the display mode that
+--- should be used for that mon's name in the menu. Includes only mons that can respawn.
+--- @param zone string the zone to generate the list for
+--- @param segment integer the segment to generate the list for
+--- @return fullDungeonSpawn_entry[] #the list of spawn entries in the currently explored part of the dungeon
 function RECRUIT_LIST.compileFullDungeonList(zone, segment)
-    local species = {}  -- used to compact multiple entries that contain the same species
-    local list = {}     -- list of all keys in the list. populated only at the end
+    --- @type table<string,table<integer,fullDungeonSpawn_entry>>
+    local species = {}  -- used to compact multiple entries that contain the same species and form
 
     RECRUIT_LIST.generateDungeonListSV(zone, segment)
     local segmentData = _DATA:GetZone(zone).Segments[segment]
@@ -412,6 +457,7 @@ function RECRUIT_LIST.compileFullDungeonList(zone, segment)
     for i = 0, segSteps.Count-1, 1 do
         local step = segSteps[i]
         if RECRUIT_LIST.getClass(step) == "RogueEssence.LevelGen.TeamSpawnZoneStep" then
+            --- @type table<string,table<integer,fullDungeonSpawn_entry>>
             local entry_list = {}
 
             -- Check Spawns
@@ -419,6 +465,7 @@ function RECRUIT_LIST.compileFullDungeonList(zone, segment)
             for j=0, spawnlist.Count-1, 1 do
                 local range = spawnlist:GetSpawnRange(j)
                 local spawn = spawnlist:GetSpawn(j).Spawn -- RogueEssence.LevelGen.MobSpawn
+                ---@type fullDungeonSpawn_entry
                 local entry = {
                     elements = {{
                         data = spawn,
@@ -429,7 +476,7 @@ function RECRUIT_LIST.compileFullDungeonList(zone, segment)
                         }
                     }},
                     type = "spawn",
-                    species = spawn.BaseForm.Species,
+                    monster = spawn.BaseForm,
                     mode = RECRUIT_LIST.not_seen, -- defaults to "???". this will be calculated later
                     enabled = false               -- false by default. this will be calculated later
                 }
@@ -456,7 +503,7 @@ function RECRUIT_LIST.compileFullDungeonList(zone, segment)
                 local spawns = spawnlist:GetSpawn(j):GetPossibleSpawns() -- SpawnList
                 for s=0, spawns.Count-1, 1 do
                     local spawn = spawns:GetSpawn(s)
-
+                    ---@type fullDungeonSpawn_entry
                     local entry = {
                         elements = {{
                             data = spawn,
@@ -467,7 +514,7 @@ function RECRUIT_LIST.compileFullDungeonList(zone, segment)
                             }
                         }},
                         type = "spawn",
-                        species = spawn.BaseForm.Species,
+                        monster = spawn.BaseForm,
                         mode = RECRUIT_LIST.not_seen, -- defaults to "???". this will be calculated later
                         enabled = false               -- false by default. this will be calculated later
                     }
@@ -489,65 +536,74 @@ function RECRUIT_LIST.compileFullDungeonList(zone, segment)
             end
 
             -- Mix everything up
-            for _, entry in pairs(entry_list) do
-                -- keep only if under explored limit
-                if entry.mode > RECRUIT_LIST.hide and entry.min <= highest then
-                    species[entry.species] = species[entry.species] or {}
-                    table.insert(species[entry.species], entry)
+            for _, forms_list in pairs(entry_list) do
+                for _, entry in pairs(forms_list) do
+                    -- keep only if under explored limit
+                    if entry.mode > RECRUIT_LIST.hide and entry.min <= highest then
+                        species[entry.monster.Species] = species[entry.monster.Species] or {}
+                        species[entry.monster.Species][entry.monster.Form] = species[entry.monster.Species]
+                        [entry.monster.Form] or {}
+                        table.insert(species[entry.monster.Species][entry.monster.Form], entry)
+                    end
                 end
             end
         end
     end
 
-    for _, entry in pairs(species) do
-        -- sort species-specific list by first appearance
-        table.sort(entry, function (a, b)
-            return a.min < b.min
-        end)
-        local current = entry[1]
+    ---@type fullDungeonSpawn_entry[]
+    local list = {}     -- final return list
 
-        -- fuse entries whose floor boundaries touch or overlap
-        -- put final entries in output list
-        if #entry>1 then
-            for i = 2, #entry, 1 do
-                local next = entry[i]
-                if current.max+1 >= next.min then
-                    current.max = math.max(current.max, next.max)
-                    for _, element in pairs(next.elements) do table.insert(current.elements, element) end
-                else
-                    table.insert(list,current)
-                    current = next
+    for _, tbl in pairs(species) do
+        for _, entries in pairs(tbl) do
+            -- sort form-specific list by first appearance
+            table.sort(entries, function (a, b)
+                return a.min < b.min
+            end)
+            ---@type fullDungeonSpawn_entry
+            local current = entries[1]
+
+            -- fuse entries whose floor boundaries touch or overlap
+            -- put final entries in output list
+            if #entries>1 then
+                for i = 2, #entries, 1 do
+                    local next = entries[i]
+                    if current.max+1 >= next.min then
+                        current.max = math.max(current.max, next.max)
+                        for _, element in pairs(next.elements) do table.insert(current.elements, element) end
+                    else
+                        table.insert(list, current)
+                        current = next
+                    end
                 end
             end
+            table.insert(list, current)
         end
-        table.insert(list,current)
     end
 
-    -- sort output list by min floor, max floor and then dex
+    -- sort output list by min floor, max floor and then dex and form
     table.sort(list, function (a, b)
         if a.min == b.min then
             if a.max == b.max then
-                return _DATA:GetMonster(a.species).IndexNum < _DATA:GetMonster(b.species).IndexNum
+                if _DATA:GetMonster(a.monster.Species).IndexNum == _DATA:GetMonster(b.monster.Species).IndexNum then
+                    return a.monster.Form < b.monster.Form
+                end
+                return _DATA:GetMonster(a.monster.Species).IndexNum < _DATA:GetMonster(b.monster.Species).IndexNum
             end
             return a.max < b.max
         end
         return a.min < b.min
     end)
 
-    for _,elem in pairs(list) do
-        local unlockState = _DATA.Save:GetMonsterUnlock(elem.species)
+    for _, elem in pairs(list) do
+        local unlockState = _DATA.Save:GetMonsterFormUnlock(elem.monster)
 
         if elem.mode ~= RECRUIT_LIST.unrecruitable then
-            -- check if the mon has been seen or obtained
+            -- check if the form has been seen or obtained
             if unlockState == RogueEssence.Data.GameProgress.UnlockState.Discovered then
                 elem.mode = RECRUIT_LIST.seen
                 elem.enabled = true
             elseif unlockState == RogueEssence.Data.GameProgress.UnlockState.Completed then
-                if RECRUIT_LIST.check_multi_form(elem.species) then
-                    elem.mode = RECRUIT_LIST.obtainedMultiForm --special color for multi-form mons
-                else
-                    elem.mode = RECRUIT_LIST.obtained
-                end
+                elem.mode = RECRUIT_LIST.obtained
                 elem.enabled = true
             end
         else
@@ -559,14 +615,16 @@ function RECRUIT_LIST.compileFullDungeonList(zone, segment)
     return list
 end
 
--- Extracts a list of all mons spawnable and spawned on the current floor and
--- then pairs them to the display mode that should be used for that mon's name in the menu
--- Non-respawning mons are always at the end of the list
+--- Extracts a list of all mons spawnable and spawned on the current floor and
+--- then pairs them to the display mode that should be used for that mon's name in the menu
+--- Non-respawning mons are always at the end of the list
+--- @return floorSpawn_entry[] #the list of spawn entries and extra characters in the currently explored part of the dungeon
 function RECRUIT_LIST.compileFloorList()
     -- abort immediately if we're not inside a dungeon or recruitment is disabled
     if _DATA.Save.NoRecruiting then return {} end
     if RogueEssence.GameManager.Instance.CurrentScene ~= RogueEssence.Dungeon.DungeonScene.Instance then return {} end
 
+    --- @type {keys:MonsterID[],entries:table<string,table<integer,{chars:{data:any}|nil,spawn:{data:any}[]|nil,mode:integer,enabled:boolean}>>}
     local list = {
         keys = {},
         entries = {}
@@ -582,21 +640,17 @@ function RECRUIT_LIST.compileFloorList()
             local spawn = spawnList:GetSpawn(j)
 
             if spawn:CanSpawn() then
-                local member = spawn.BaseForm.Species
-                local unlockState = _DATA.Save:GetMonsterUnlock(member)
+                local member = spawn.BaseForm
+                local unlockState = _DATA.Save:GetMonsterFormUnlock(member)
                 local mode = RECRUIT_LIST.not_seen -- default is to "???" respawning mons if unknown
-                local enabled = false              --false by default
+                local enabled = false              -- false by default
 
                 -- check if the mon has been seen or obtained
                 if unlockState == RogueEssence.Data.GameProgress.UnlockState.Discovered then
                     mode = RECRUIT_LIST.seen
                     enabled = true
                 elseif unlockState == RogueEssence.Data.GameProgress.UnlockState.Completed then
-                    if RECRUIT_LIST.check_multi_form(member) then
-                        mode = RECRUIT_LIST.obtainedMultiForm --special color for multi-form mons
-                    else
-                        mode = RECRUIT_LIST.obtained
-                    end
+                    mode = RECRUIT_LIST.obtained
                     enabled = true
                 end
 
@@ -618,7 +672,8 @@ function RECRUIT_LIST.compileFloorList()
 
                 -- add the member and its display mode to the list
                 if mode > RECRUIT_LIST.hide then
-                    if not list.entries[member] then
+                    list.entries[member.Species] = list.entries[member.Species] or {}
+                    if not list.entries[member.Species][member.Form] then
                         table.insert(list.keys, member)
                         list.entries[member] = {
                             spawn = {{data = spawn}},
@@ -626,7 +681,7 @@ function RECRUIT_LIST.compileFloorList()
                             enabled = enabled
                         }
                     else
-                        table.insert(list.entries[member].spawn, {data = spawn})
+                        table.insert(list.entries[member.Species][member.Form].spawn, {data = spawn})
                     end
                 end
             end
@@ -634,8 +689,11 @@ function RECRUIT_LIST.compileFloorList()
     end
 
     -- sort spawn list
-    table.sort(list.keys, function (a, b)
-        return _DATA:GetMonster(a).IndexNum < _DATA:GetMonster(b).IndexNum
+    table.sort(list.keys, function(a, b)
+        if a.Species == b.Species then
+            return a.Form < b.Form
+        end
+        return _DATA:GetMonster(a.Species).IndexNum < _DATA:GetMonster(b.Species).IndexNum
     end)
 
     -- check all mons on the floor that are not in spawn list
@@ -644,73 +702,61 @@ function RECRUIT_LIST.compileFloorList()
         local team = teams[i].Players
         for j = 0, team.Count-1, 1 do
             local char = team[j]
-            local member = char.BaseForm.Species
-            local unlockState = _DATA.Save:GetMonsterUnlock(member)
+            local member = char.BaseForm
+            local unlockState = _DATA.Save:GetMonsterFormUnlock(member)
             local mode = RECRUIT_LIST.hide -- default is to not show non-respawning mons if unknown
 
             -- check if the mon has been seen or obtained
             if unlockState == RogueEssence.Data.GameProgress.UnlockState.Discovered then
                 mode = RECRUIT_LIST.extra_seen
             elseif unlockState == RogueEssence.Data.GameProgress.UnlockState.Completed then
-                if RECRUIT_LIST.check_multi_form(member) then
-                    mode = RECRUIT_LIST.extra_obtainedMultiForm
-                else
-                    mode = RECRUIT_LIST.extra_obtained
-                end
+                mode = RECRUIT_LIST.extra_obtained
             end
             -- do not show in recruit list if cannot recruit, no matter the list or mode
             if char.Unrecruitable then mode = RECRUIT_LIST.hide end
 
             -- add the member and its display mode to the list
             if mode > RECRUIT_LIST.hide then
-                if not list.entries[member] then
+                list.entries[member.Species] = list.entries[member.Species] or {}
+                if not list.entries[member.Species][member.Form] then
                     table.insert(list.keys, member)
-                    list.entries[member] = {
+                    list.entries[member.Species][member.Form] = {
                         chars = {{data = char}},
                         mode = mode,
                         enabled = true
                     }
-                elseif list.entries[member].chars then
-                    table.insert(list.entries[member].chars, {data = char})
+                elseif list.entries[member.Species][member.Form].chars then
+                    table.insert(list.entries[member.Species][member.Form].chars, {data = char})
                 end
             end
         end
     end
 
+    --- @type floorSpawn_entry[]
     local ret = {}
-    for _,key in pairs(list.keys) do
-        local entryList = list.entries[key].spawn
+    for _, key in pairs(list.keys) do
+        local entryList = list.entries[key.Species][key.Form].spawn
         local entryType = "spawn"
         if entryList == nil then
-            entryList = list.entries[key].chars
+            entryList = list.entries[key.Species][key.Form].chars
             entryType = "chars"
         end
         local entry = {
             type = entryType,
-            elements = entryList,
-            species = key,
-            mode = list.entries[key].mode,
-            enabled = list.entries[key].enabled
+            elements = entryList --[[@as {data:any}]],
+            monster = key,
+            mode = list.entries[key.Species][key.Form].mode,
+            enabled = list.entries[key.Species][key.Form].enabled
         }
         table.insert(ret,entry)
     end
     return ret
 end
 
---returns whether the mon has more than 1 non-temporary form
-function RECRUIT_LIST.check_multi_form(monster)
-    local forms = _DATA:GetMonster(monster).Forms
-    if forms.Count == 1 then return false end
-    local count = 0
-    for i=0, forms.Count-1, 1 do
-        if not forms[i].Temporary then count = count+1 end
-        if count>1 then return true
-        end
-    end
-    return false
-end
-
--- Returns the class of an object as string. Useful to extract and check C# class names
+--TODO throw this shit away
+--- Returns the class of an object as string. Useful to extract and check C# class names
+---@param csobject any the object
+---@return string #the class name
 function RECRUIT_LIST.getClass(csobject)
     if not csobject then return "nil" end
     local namet = getmetatable(csobject).__name
@@ -720,7 +766,12 @@ function RECRUIT_LIST.getClass(csobject)
     end
 end
 
--- Checks if the last used version is higher than the supplied one. No parameter is mandatory
+--- Checks if the last used version is higher than the supplied one. No parameter is mandatory
+--- @param Major integer? the major version number
+--- @param Minor integer? the minor version number
+--- @param Build integer? the build number
+--- @param Revision integer? the revision number
+--- @return boolean #true if the last used version is higher than the supplied one, false otherwise
 function RECRUIT_LIST.checkMinVersion(Major, Minor, Build, Revision)
     Major = Major or 0
     Minor = Minor or 0
