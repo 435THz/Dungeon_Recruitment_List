@@ -461,7 +461,7 @@ function RECRUIT_LIST.compileFullDungeonList(zone, segment)
     for i = 0, segSteps.Count-1, 1 do
         local step = segSteps[i]
         if LUA_ENGINE:TypeOf(step) == luanet.ctype(RECRUIT_LIST.TeamSpawnZoneStep) then
-            --- @type table<string,table<integer,fullDungeonSpawn_entry>>
+            --- @type fullDungeonSpawn_entry[]
             local entry_list = {}
 
             -- Check Spawns
@@ -539,16 +539,13 @@ function RECRUIT_LIST.compileFullDungeonList(zone, segment)
                 end
             end
 
-            -- Mix everything up
-            for _, forms_list in pairs(entry_list) do
-                for _, entry in pairs(forms_list) do
-                    -- keep only if under explored limit
-                    if entry.mode > RECRUIT_LIST.hide and entry.min <= highest then
-                        species[entry.monster.Species] = species[entry.monster.Species] or {}
-                        species[entry.monster.Species][entry.monster.Form] = species[entry.monster.Species]
-                        [entry.monster.Form] or {}
-                        table.insert(species[entry.monster.Species][entry.monster.Form], entry)
-                    end
+            -- Group by species and form
+            for _, entry in pairs(entry_list) do
+                -- keep only if under explored limit
+                if entry.mode > RECRUIT_LIST.hide and entry.min <= highest then
+                    species[entry.monster.Species] = species[entry.monster.Species] or {}
+                    species[entry.monster.Species][entry.monster.Form] = species[entry.monster.Species][entry.monster.Form] or {}
+                    table.insert(species[entry.monster.Species][entry.monster.Form], entry)
                 end
             end
         end
@@ -679,7 +676,7 @@ function RECRUIT_LIST.compileFloorList()
                     list.entries[member.Species] = list.entries[member.Species] or {}
                     if not list.entries[member.Species][member.Form] then
                         table.insert(list.keys, member)
-                        list.entries[member] = {
+                        list.entries[member.Species][member.Form] = {
                             spawn = {{data = spawn}},
                             mode = mode,
                             enabled = enabled
