@@ -13,7 +13,6 @@ RecruitSummaryMenu.FeatureBoost = luanet.import_type('PMDC.LevelGen.MobSpawnBoos
 RecruitSummaryMenu.FeatureLevelScale = luanet.import_type('PMDC.LevelGen.MobSpawnLevelScale')
 RecruitSummaryMenu.FeatureMovesOff = luanet.import_type('PMDC.LevelGen.MobSpawnMovesOff')
 RecruitSummaryMenu.FeatureScaledBoost = luanet.import_type('PMDC.LevelGen.MobSpawnScaledBoost')
-RecruitSummaryMenu.FeatureUnrecruitable = luanet.import_type('PMDC.LevelGen.MobSpawnUnrecruitable')
 RecruitSummaryMenu.FeatureWeak = luanet.import_type('PMDC.LevelGen.MobSpawnWeak')
 RecruitSummaryMenu.pageList = {RecruitSummaryFeaturesWindow, RecruitSummaryStatsWindow, RecruitSummaryLearnsetWindow}
 
@@ -262,7 +261,7 @@ function RecruitSummaryMenu.loadFeatures(element, formEntry, level, isChar)
                 data.boost.sat = data.boost.sat + math.min(sat.Min + sat.Length * ((clampedLevel - levelMin) // levelLength), MAX_BOOST)
                 data.boost.sdf = data.boost.sdf + math.min(sdf.Min + sdf.Length * ((clampedLevel - levelMin) // levelLength), MAX_BOOST)
                 data.boost.spd = data.boost.spd + math.min(spd.Min + spd.Length * ((clampedLevel - levelMin) // levelLength), MAX_BOOST)
-            elseif LUA_ENGINE:TypeOf(feat) == luanet.ctype(RecruitSummaryMenu.FeatureUnrecruitable) then
+            elseif LUA_ENGINE:TypeOf(feat) == luanet.ctype(RECRUIT_LIST.FeatureUnrecruitable) then
                 data.recruitable = false
             elseif LUA_ENGINE:TypeOf(feat) == luanet.ctype(RecruitSummaryMenu.FeatureWeak) then
                 data.hunger = 35

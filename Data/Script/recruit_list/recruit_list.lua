@@ -15,10 +15,10 @@ RECRUIT_LIST = {}
 ---@alias fullDungeonSpawn_entry {elements:{data:any,dungeon:{zone:string,segment:integer},range:{min:integer,max:integer}}[],type:string,monster:MonsterID,mode:integer,enabled:boolean,min:integer,max:integer}
 ---@alias floorSpawn_entry {elements:{data:any,dungeon:{zone:string,segment:integer},range:{min:integer,max:integer}}[],type:string,monster:MonsterID,mode:integer,enabled:boolean}
 
---- ----------------------------------------------
---- Constants
---- ----------------------------------------------
--- Modes
+-- ----------------------------------------------
+-- Constants
+-- ----------------------------------------------
+
 RECRUIT_LIST.hide =                    0
 RECRUIT_LIST.unrecruitable_not_seen =  1
 RECRUIT_LIST.not_seen =                2
@@ -27,6 +27,10 @@ RECRUIT_LIST.seen =                    4
 RECRUIT_LIST.extra_seen =              5
 RECRUIT_LIST.obtained =                6
 RECRUIT_LIST.extra_obtained =          7
+
+RECRUIT_LIST.FloorNameDropZoneStep = luanet.import_type('PMDC.LevelGen.FloorNameDropZoneStep')
+RECRUIT_LIST.TeamSpawnZoneStep = luanet.import_type('RogueEssence.LevelGen.TeamSpawnZoneStep')
+RECRUIT_LIST.FeatureUnrecruitable = luanet.import_type('PMDC.LevelGen.MobSpawnUnrecruitable')
 
 --- -----------------------------------------------
 --- SV structure
@@ -147,7 +151,7 @@ function RECRUIT_LIST.build_segment_name(segment_data)
     -- look for a title property to extract the name from
     for j = 0, segSteps.Count-1, 1 do
         local step = segSteps[j]
-        if RECRUIT_LIST.getClass(step) == "PMDC.LevelGen.FloorNameDropZoneStep" then
+        if LUA_ENGINE:TypeOf(step) == luanet.ctype(RECRUIT_LIST.FloorNameDropZoneStep) then
             exit = true
             local name = step.Name:ToLocal()
             for substr in name:gmatch(("[^\r\n]+")) do
@@ -393,7 +397,7 @@ function RECRUIT_LIST.isSegmentValid(zone, segment, segmentData, includeNotExplo
     local segSteps = segmentData.ZoneSteps
     for i = 0, segSteps.Count-1, 1 do
         local step = segSteps[i]
-        if RECRUIT_LIST.getClass(step) == "RogueEssence.LevelGen.TeamSpawnZoneStep" then
+        if LUA_ENGINE:TypeOf(step) == luanet.ctype(RECRUIT_LIST.TeamSpawnZoneStep) then
             return true
         end
     end
@@ -456,7 +460,7 @@ function RECRUIT_LIST.compileFullDungeonList(zone, segment)
     local highest = RECRUIT_LIST.getFloorsCleared(zone,segment)
     for i = 0, segSteps.Count-1, 1 do
         local step = segSteps[i]
-        if RECRUIT_LIST.getClass(step) == "RogueEssence.LevelGen.TeamSpawnZoneStep" then
+        if LUA_ENGINE:TypeOf(step) == luanet.ctype(RECRUIT_LIST.TeamSpawnZoneStep) then
             --- @type table<string,table<integer,fullDungeonSpawn_entry>>
             local entry_list = {}
 
@@ -486,7 +490,7 @@ function RECRUIT_LIST.compileFullDungeonList(zone, segment)
                 local recruitable = true
                 local features = spawn.SpawnFeatures
                 for f = 0, features.Count-1, 1 do
-                    if RECRUIT_LIST.getClass(features[f]) == "PMDC.LevelGen.MobSpawnUnrecruitable" then
+                    if LUA_ENGINE:TypeOf(features[f]) == luanet.ctype(RECRUIT_LIST.FeatureUnrecruitable) then
                         recruitable = false
                         entry.mode = RECRUIT_LIST.unrecruitable
                     end
@@ -524,7 +528,7 @@ function RECRUIT_LIST.compileFullDungeonList(zone, segment)
                     local recruitable = true
                     local features = spawn.SpawnFeatures
                     for f = 0, features.Count-1, 1 do
-                        if RECRUIT_LIST.getClass(features[f]) == "PMDC.LevelGen.MobSpawnUnrecruitable" then
+                        if LUA_ENGINE:TypeOf(features[f]) == luanet.ctype(RECRUIT_LIST.FeatureUnrecruitable) then
                             recruitable = false
                             entry.mode = RECRUIT_LIST.unrecruitable
                         end
@@ -657,7 +661,7 @@ function RECRUIT_LIST.compileFloorList()
                 -- check if the mon is recruitable
                 local features = spawn.SpawnFeatures
                 for f = 0, features.Count-1, 1 do
-                    if RECRUIT_LIST.getClass(features[f]) == "PMDC.LevelGen.MobSpawnUnrecruitable" then
+                    if LUA_ENGINE:TypeOf(features[f]) == luanet.ctype(RECRUIT_LIST.FeatureUnrecruitable) then
                         if RECRUIT_LIST.showUnrecruitable() then
                             if mode == RECRUIT_LIST.not_seen then
                                 mode = RECRUIT_LIST.unrecruitable_not_seen
@@ -751,19 +755,6 @@ function RECRUIT_LIST.compileFloorList()
         table.insert(ret,entry)
     end
     return ret
-end
-
---TODO throw this shit away
---- Returns the class of an object as string. Useful to extract and check C# class names
----@param csobject any the object
----@return string #the class name
-function RECRUIT_LIST.getClass(csobject)
-    if not csobject then return "nil" end
-    local namet = getmetatable(csobject).__name
-    if not namet then return type(csobject) end
-    for a in namet:gmatch('([^,]+)') do
-        return a
-    end
 end
 
 --- Checks if the last used version is higher than the supplied one. No parameter is mandatory
