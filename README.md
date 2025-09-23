@@ -4,10 +4,10 @@ By: MistressNebula
 This [PMDO](https://github.com/audinowho/PMDODump/releases) mod allows
 the player to access the full Recruitment List of explored dungeons,
 accessible from the Others menu while in a Ground Map.
-This list shows all Recruitable Pokémon up to the highest reached
+This list shows all recruitable Pokémon up to the highest reached
 floor of a dungeon, complete with the exact floor number you can find
 those Pokémon at.
-It even contains some explanation screens a scanner mode and an icon mode.
+It also contains some explanation screens, a scanner mode and an icon mode.
 
 Using ths mod in dev mode will display unrecruitable Pokémon, as well.
 
@@ -44,8 +44,8 @@ to distinguish between caught, non-caught and pokémon spawned in special ways.
 ### Disclaimer for preexisting saves
 It is recommended that this mod is installed at the very start of a save
 file. This is because, during normal gameplay, the game does not store
-any infomation about which exits of a dungeon you complete. This makes this
-mod unable to tell which nor how many exits you completed before installing
+any information about which exits of a dungeon you complete. This makes this
+mod unable to tell which or how many exits you completed before installing
 it, so it will just assume, for all dungeons marked as completed, that you
 reached only the main exit when it generates the dungeon list for the first time.
 You can absolutely still install it on old saves, just keep in mind that you

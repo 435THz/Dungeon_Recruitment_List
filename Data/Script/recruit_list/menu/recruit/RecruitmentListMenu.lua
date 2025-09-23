@@ -16,11 +16,12 @@ RecruitmentListMenu.static.patternList = {
     {pre = '\u{E111}', txt = '{t}', suf = '',         spa = 10, clr = '#00FFFF', alw = false},
     {pre = '',         txt = '{t}', suf = '\u{E10C}', spa =  0, clr = '#FFFF00', alw = false},
     {pre = '\u{E111}', txt = '{t}', suf = '\u{E10C}', spa = 10, clr = '#FFFFA0', alw = false},
-    {pre = '',         txt = '{t}', suf = '\u{E10D}', spa =  0, clr = '#FFA500', alw = false},
-    {pre = '\u{E111}', txt = '{t}', suf = '\u{E10D}', spa = 10, clr = '#FFE0A0', alw = false}
 }
 RecruitmentListMenu.static.colorError = '#FF0000'
 
+---@param title string
+---@param zone string
+---@param segment integer
 function RecruitmentListMenu:initialize(title, zone, segment)
     assert(self, "RecruitmentListMenu:initialize(): self is nil!")
     self.static = RecruitmentListMenu.static
@@ -80,12 +81,16 @@ function RecruitmentListMenu:initialize(title, zone, segment)
     self:DrawMenu()
 end
 
+---@param zone string
+---@param segment integer
+---@return floorSpawn_entry|fullDungeonSpawn_entry
 function RecruitmentListMenu:loadEntries(zone, segment)
     if self.fullDungeon then return RECRUIT_LIST.compileFullDungeonList(zone, segment)
     else return RECRUIT_LIST.compileFloorList()
     end
 end
 
+---@return integer
 function RecruitmentListMenu:countValid()
     for i = #self.list, 1, -1 do
         if self.list[i].enabled ~= nil then return i end
@@ -110,7 +115,7 @@ function RecruitmentListMenu:DrawMenu()
         local text = ""
         local x_adjust = 0
         if i <= #self.list then
-            text, x_adjust = self:formatName(self.list[i].species, self.list[i].mode)
+            text, x_adjust = self:formatName(self.list[i].monster, self.list[i].mode)
             if self.fullDungeon then
                 local text_fl = tostring(self.list[i].min)
                 if self.list[i].min ~= self.list[i].max then
@@ -142,9 +147,13 @@ function RecruitmentListMenu:DrawMenu()
     self.cursor:ResetTimeOffset()
 end
 
+---@param monster MonsterID
+---@param mode integer
+---@return string
+---@return integer
 function RecruitmentListMenu:formatName(monster, mode)
     local use_icon = RECRUIT_LIST.iconMode()
-    local name = _DATA:GetMonster(monster).Name:ToLocal()
+    local name = _DATA:GetMonster(monster.Species).Forms[monster.Form].FormName:ToLocal()
 
     local pattern = self.static.patternList[4]
     local color = self.static.colorError
@@ -189,7 +198,7 @@ function RecruitmentListMenu:confirmButton()
         end
     elseif self.mode == self.static.scannerMode then
         local index = self.page*self.ENTRY_LIMIT + (self.selected[1]-1)*self.ENTRY_LINES + self.selected[2]
-        local element = self.list[index]
+        local element = self.list[index] --[[@as fullDungeonSpawn_entry|floorSpawn_entry]]
         if element.enabled then
             _GAME:SE("Menu/Confirm")
             RecruitSummaryMenu.run(element)
@@ -212,6 +221,9 @@ function RecruitmentListMenu:cancelButton()
     end
 end
 
+---@param input any
+---@param direction any
+---@return boolean true if the direction should tick due to being pressed, false otherwise
 function RecruitmentListMenu:directionHold(input, direction)
     local INPUT_WAIT = 30
     local INPUT_GAP = 6
@@ -228,18 +240,26 @@ function RecruitmentListMenu:directionHold(input, direction)
     return new_dir and (not old_dir or repeat_time)
 end
 
+---@param input any
+---@param direction any
+---@return boolean true if the given directions is pressed, false otherwise
 function RecruitmentListMenu:directionPressed(input, direction)
     local pressed = input.Direction == direction and not self.dirPressed
     if pressed then self.dirPressed = true end
     return pressed
 end
 
+---@param input any
+---@param ... any[]
+---@return boolean true if none of the given directions are pressed, false otherwise
 function RecruitmentListMenu:dirsNotPressed(input, ...)
     local arg = { select(1, ...) }
     for _, dir in ipairs(arg) do if input.Direction == dir then return false end end
     return true
 end
 
+---@param x integer
+---@param y integer
 function RecruitmentListMenu:updateSelection(x, y)
     local start_pos = {self.page, self.selected[1], self.selected[2], self.mode}
     local change
@@ -265,12 +285,17 @@ function RecruitmentListMenu:updateSelection(x, y)
     end
 end
 
+---@param x integer
+---@return boolean #true if the page changed, false otherwise
 function RecruitmentListMenu:changePage(x)
     if x == 0 then return false end
     self.page = (self.page+x) % (self.PAGE_MAX+1)
     return true
 end
 
+---@param x integer
+---@param y integer
+---@return boolean #true if the selection changed, false otherwise
 function RecruitmentListMenu:changeSelection(x, y)
     if x==0 and y==0 then return false end
 
@@ -296,11 +321,16 @@ function RecruitmentListMenu:changeSelection(x, y)
     return true
 end
 
+---@param page integer
+---@return integer
 function RecruitmentListMenu:getPageMaxColumns(page)
     if page >= self.PAGE_VALID then return self.VALID_COLUMNS_LAST_PAGE end
     return self.ENTRY_COLUMNS
 end
 
+---@param page integer
+---@param column integer
+---@return integer
 function RecruitmentListMenu:getColumnMaxRows(page, column)
     if page == self.PAGE_VALID and column == self.VALID_COLUMNS_LAST_PAGE then
         return self.VALID_ROWS_LAST_COLUMN end

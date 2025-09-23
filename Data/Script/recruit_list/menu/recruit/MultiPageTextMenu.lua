@@ -25,10 +25,7 @@ MultiPageTextMenu.static[1].content = {
             "be scanned, and the List will not only contain all " ..
             "species that can spawn naturally inside of it, " ..
             "but also all Pokémon that are currently on the " ..
-            "floor but are not supposed to appear normally.",--[[.." If a" ..]] --TODO we just keep this for the future
-    --        "Pokémon is marked with an \"*\", that means it can" ..
-    --        "spawn on the floor but it is not guaranteed to," ..
-    --        "and it will not respawn upon defeat."
+            "floor but are not supposed to appear normally.",
     -- page 3
     "Be careful: if on the current floor there's a " ..
             "Pokémon you never met before and that " ..
@@ -49,7 +46,7 @@ MultiPageTextMenu.static[1].content = {
             "[color=#FF0000]WARNING[color]: The bigger dungeons can take a few " ..
             "seconds to load.",
     -- page 5
-    "This mod comes with an [color=#FFFF00]Scanner Mode[color] that " ..
+    "This mod comes with a [color=#FFFF00]Scanner Mode[color] that " ..
             "allows you to view any spawn entry's [color=#00FFFF]Summary[color], " ..
             "provided you already encountered the species in " ..
             "question at least once.\n" ..
@@ -106,45 +103,31 @@ MultiPageTextMenu.static[2].content = {
                 "\n" ..
                 "???(White): You have never met this Pokémon.\n" ..
                 "White: You have never recruited this Pokémon.\n" ..
-                "[color=#FFFF00]Yellow[color]\u{E10C}: You have recruited this Pokémon.\n" ..
-                "[color=#FFA500]Orange[color]\u{E10D}: You have recruited this Pokémon, but " ..
-                "it has multiple forms and the Recruitment List " ..
-                "cannot tell which ones nor how many you have.",
+                "[color=#FFFF00]Yellow[color]\u{E10C}: You have recruited this Pokémon.\n",
         -- no icon mode
         "Colors used for Pokémon that keep appearing\n" ..
                 "as long as you stay in this Dungeon:\n" ..
                 "\n" ..
                 "???(White): You have never met this Pokémon.\n" ..
                 "White: You have never recruited this Pokémon.\n" ..
-                "[color=#FFFF00]Yellow[color]: You have recruited this Pokémon.\n" ..
-                "[color=#FFA500]Orange[color]: You have recruited this Pokémon, but it " ..
-                "has multiple forms and the Recruitment List " ..
-                "cannot tell which ones nor how many you have."
+                "[color=#FFFF00]Yellow[color]: You have recruited this Pokémon.\n"
     },
     -- page 2
     {
         -- icon mode
         "Colors used for Pokémon that appeared in " ..
                 "special circumstances (only shown in floor):\n" ..
-                "\n" ..
+                "\n\n" ..
                 "\u{E111}[color=#00FFFF]Cyan[color]: You have never recruited this Pokémon.\n" ..
                 "\u{E111}[color=#FFFFA0]Faded Yellow[color]\u{E10C}: You have recruited this " ..
-                "Pokémon.\n" ..
-                "\u{E111}[color=#FFE0A0]Faded Orange[color]\u{E10D}: You have recruited this " ..
-                "Pokémon, but it has multiple forms and the " ..
-                "Recruitment List cannot tell which ones nor how " ..
-                "many you have.",
+                "Pokémon.\n",
 
         -- no icon mode
         "Colors used for Pokémon that appeared in " ..
                 "special circumstances (only shown in floor):\n" ..
-                "\n" ..
+                "\n\n" ..
                 "[color=#00FFFF]Cyan[color]: You have never recruited this Pokémon.\n" ..
-                "[color=#FFFFA0]Faded Yellow[color]: You have recruited this Pokémon.\n" ..
-                "[color=#FFE0A0]Faded Orange[color]: You have recruited this Pokémon, " ..
-                "but it has multiple forms and the Recruitment " ..
-                "List cannot tell which ones nor how many you " ..
-                "have."
+                "[color=#FFFFA0]Faded Yellow[color]: You have recruited this Pokémon.\n"
     }
 }
 MultiPageTextMenu.static[2].content_filter = function(_) return true end
