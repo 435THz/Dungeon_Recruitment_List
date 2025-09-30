@@ -111,7 +111,8 @@ RECRUIT_LIST.TeamSpawnZoneStep = luanet.import_type('RogueEssence.LevelGen.TeamS
 RECRUIT_LIST.FeatureUnrecruitable = luanet.import_type('PMDC.LevelGen.MobSpawnUnrecruitable')
 RECRUIT_LIST.Unlock = RogueEssence.Data.GameProgress.UnlockState
 RECRUIT_LIST.ZoneIndex = _DATA.DataIndices[RogueEssence.Data.DataManager.DataType.Zone]
--- -----------------------------------------------
+RECRUIT_LIST.MonsterIndex = _DATA.DataIndices[RogueEssence.Data.DataManager.DataType.Monster]
+--- -----------------------------------------------
 --- SV structure
 --- -----------------------------------------------
 --- Returns whether the game has been completed or not
@@ -427,13 +428,18 @@ end
 function RECRUIT_LIST.getMonsterCompletion(species, form)
     if RECRUIT_LIST.single_species[species] then
         return _DATA.Save:GetMonsterUnlock(species)
-    end
-    if RECRUIT_LIST.redirects[species] and RECRUIT_LIST.redirects[species].redirect_completion then
+    elseif RECRUIT_LIST.redirects[species] and RECRUIT_LIST.redirects[species].redirect_completion then
         if RECRUIT_LIST.redirects[species].all then
             return _DATA.Save:GetMonsterUnlock(species)
         elseif RECRUIT_LIST.redirects[species][form] then
             return RECRUIT_LIST.getCompletionRedirect(species, form)
         end
+    end
+    local monster_summary = RECRUIT_LIST.MonsterIndex:Get(species)
+    local form_summary = monster_summary.Forms[form]
+    while form_summary.Temporary and form>0 do
+        form = form-1
+        form_summary = monster_summary.Forms[form]
     end
     return _DATA.Save:GetMonsterFormUnlock(species, form)
 end
@@ -463,6 +469,13 @@ function RECRUIT_LIST.getMonsterFormName(species, form)
     if RECRUIT_LIST.abbreviations[species] and RECRUIT_LIST.abbreviations[species][form] then
         return STRINGS:FormatKey(RECRUIT_LIST.abbreviations[species][form])
     else
+        local monster_summary = RECRUIT_LIST.MonsterIndex:Get(species)
+        local form_summary = monster_summary.Forms[form]
+        while form_summary.Temporary and form>0 do
+            form = form-1
+            form_summary = monster_summary.Forms[form]
+        end
+        
         local name = _DATA:GetMonster(species).Forms[form].FormName:ToLocal()
         for p, r in pairs(RECRUIT_LIST.variants) do
             local pattern = STRINGS:FormatKey(p)
