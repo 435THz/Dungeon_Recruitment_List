@@ -110,7 +110,8 @@ RECRUIT_LIST.FloorNameDropZoneStep = luanet.import_type('PMDC.LevelGen.FloorName
 RECRUIT_LIST.TeamSpawnZoneStep = luanet.import_type('RogueEssence.LevelGen.TeamSpawnZoneStep')
 RECRUIT_LIST.FeatureUnrecruitable = luanet.import_type('PMDC.LevelGen.MobSpawnUnrecruitable')
 RECRUIT_LIST.Unlock = RogueEssence.Data.GameProgress.UnlockState
---- -----------------------------------------------
+RECRUIT_LIST.ZoneIndex = _DATA.DataIndices[RogueEssence.Data.DataManager.DataType.Zone]
+-- -----------------------------------------------
 --- SV structure
 --- -----------------------------------------------
 --- Returns whether the game has been completed or not
@@ -170,7 +171,7 @@ end
 --- @param zone string the zone id to check for
 --- @return boolean #true if the string is a valid zone index, false otherwise
 function RECRUIT_LIST.zoneExists(zone)
-    return not not _DATA.DataIndices[RogueEssence.Data.DataManager.DataType.Zone]:ContainsKey(zone)
+    return not not RECRUIT_LIST.ZoneIndex:ContainsKey(zone)
 end
 
 --- Returns the ZoneEntrySummary associated to the given zone id
@@ -178,7 +179,7 @@ end
 --- @return any #the ZoneEntrySummary of the zone
 function RECRUIT_LIST.getZoneSummary(zone)
     if RECRUIT_LIST.zoneExists(zone) then
-        return _DATA.DataIndices[RogueEssence.Data.DataManager.DataType.Zone]:Get(zone)
+        return RECRUIT_LIST.ZoneIndex:Get(zone)
     end
     return nil
 end

@@ -97,7 +97,7 @@ end
 
 
 function RecruitListDungeonSummary:SetDungeon(title, index, isComplete)
-    local zoneEntry = _DATA.DataIndices[RogueEssence.Data.DataManager.DataType.Zone]:Get(index)
+    local zoneEntry = RECRUIT_LIST.ZoneIndex:Get(index)
     if zoneEntry == nil then
         self.window.Visible = false;
     else
