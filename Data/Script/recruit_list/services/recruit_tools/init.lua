@@ -140,7 +140,7 @@ function RecruitTools:OnUpgrade()
 
         -- add all completed dungeons
         for entry in luanet.each(_DATA.Save.DungeonUnlocks) do
-            if entry.Value == RogueEssence.Data.GameProgress.UnlockState.Completed and
+            if entry.Value == RECRUIT_LIST.Unlock.Completed and
                     not RECRUIT_LIST.segmentDataExists(entry.Key, 0) then
 
                 local data = RECRUIT_LIST.getSegmentData(entry.Key, 0)

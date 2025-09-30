@@ -31,7 +31,7 @@ RECRUIT_LIST.extra_obtained =          7
 RECRUIT_LIST.FloorNameDropZoneStep = luanet.import_type('PMDC.LevelGen.FloorNameDropZoneStep')
 RECRUIT_LIST.TeamSpawnZoneStep = luanet.import_type('RogueEssence.LevelGen.TeamSpawnZoneStep')
 RECRUIT_LIST.FeatureUnrecruitable = luanet.import_type('PMDC.LevelGen.MobSpawnUnrecruitable')
-
+RECRUIT_LIST.Unlock = RogueEssence.Data.GameProgress.UnlockState
 --- -----------------------------------------------
 --- SV structure
 --- -----------------------------------------------
@@ -600,15 +600,15 @@ function RECRUIT_LIST.compileFullDungeonList(zone, segment)
 
         if elem.mode ~= RECRUIT_LIST.unrecruitable then
             -- check if the form has been seen or obtained
-            if unlockState == RogueEssence.Data.GameProgress.UnlockState.Discovered then
+            if unlockState == RECRUIT_LIST.Unlock.Discovered then
                 elem.mode = RECRUIT_LIST.seen
                 elem.enabled = true
-            elseif unlockState == RogueEssence.Data.GameProgress.UnlockState.Completed then
+            elseif unlockState == RECRUIT_LIST.Unlock.Completed then
                 elem.mode = RECRUIT_LIST.obtained
                 elem.enabled = true
             end
         else
-            if unlockState == RogueEssence.Data.GameProgress.UnlockState.None then
+            if unlockState == RECRUIT_LIST.Unlock.None then
                 elem.mode = RECRUIT_LIST.unrecruitable_not_seen
             else elem.enabled = true end
         end
@@ -647,10 +647,10 @@ function RECRUIT_LIST.compileFloorList()
                 local enabled = false              -- false by default
 
                 -- check if the mon has been seen or obtained
-                if unlockState == RogueEssence.Data.GameProgress.UnlockState.Discovered then
+                if unlockState == RECRUIT_LIST.Unlock.Discovered then
                     mode = RECRUIT_LIST.seen
                     enabled = true
-                elseif unlockState == RogueEssence.Data.GameProgress.UnlockState.Completed then
+                elseif unlockState == RECRUIT_LIST.Unlock.Completed then
                     mode = RECRUIT_LIST.obtained
                     enabled = true
                 end
@@ -708,9 +708,9 @@ function RECRUIT_LIST.compileFloorList()
             local mode = RECRUIT_LIST.hide -- default is to not show non-respawning mons if unknown
 
             -- check if the mon has been seen or obtained
-            if unlockState == RogueEssence.Data.GameProgress.UnlockState.Discovered then
+            if unlockState == RECRUIT_LIST.Unlock.Discovered then
                 mode = RECRUIT_LIST.extra_seen
-            elseif unlockState == RogueEssence.Data.GameProgress.UnlockState.Completed then
+            elseif unlockState == RECRUIT_LIST.Unlock.Completed then
                 mode = RECRUIT_LIST.extra_obtained
             end
             -- do not show in recruit list if cannot recruit, no matter the list or mode
