@@ -12,12 +12,88 @@ RECRUIT_LIST = {}
 ---@alias MonsterID {Species:string,Form:integer,Skin:string,Gender:any}
 ---@alias segment_entry {floorsCleared:integer,totalFloors:integer,completed:boolean,name:string}
 ---@alias zone_order_entry {zone:string,cap:boolean,level:integer,length:integer,name:string}
----@alias fullDungeonSpawn_entry {elements:{data:any,dungeon:{zone:string,segment:integer},range:{min:integer,max:integer}}[],type:string,monster:MonsterID,mode:integer,enabled:boolean,min:integer,max:integer}
+---@alias fullDungeonSpawn_entry {elements:{data:any,dungeon:{zone:string,segment:integer},range:{min:integer,max:integer}}[],type:string,monster:MonsterID, forms:integer[]?, mode:integer,enabled:boolean,min:integer,max:integer}
 ---@alias floorSpawn_entry {elements:{data:any,dungeon:{zone:string,segment:integer},range:{min:integer,max:integer}}[],type:string,monster:MonsterID,mode:integer,enabled:boolean}
 
 -- ----------------------------------------------
 -- Constants
 -- ----------------------------------------------
+
+---@type table<string, string>
+RECRUIT_LIST.variants = {}
+RECRUIT_LIST.variants.VARIANT_KEY_ALOLA = "VARIANT_ABBR_ALOLA"
+RECRUIT_LIST.variants.VARIANT_KEY_GALAR = "VARIANT_ABBR_GALAR"
+RECRUIT_LIST.variants.VARIANT_KEY_HISUI = "VARIANT_ABBR_HISUI"
+RECRUIT_LIST.variants.VARIANT_KEY_PALDEA = "VARIANT_ABBR_PALDEA"
+---@type table<string, table<integer, string>>
+RECRUIT_LIST.abbreviations = {}
+RECRUIT_LIST.abbreviations.basculegion = {[0]="SPECIES_ABBR_BASCULEGION_0", [1]="SPECIES_ABBR_BASCULEGION_1"}
+RECRUIT_LIST.abbreviations.basculin = {[0]="SPECIES_ABBR_BASCULIN_0", [1]="SPECIES_ABBR_BASCULIN_1", [2]="SPECIES_ABBR_BASCULIN_2"}
+RECRUIT_LIST.abbreviations.burmy = {[0]="SPECIES_ABBR_BURMY_0", [1]="SPECIES_ABBR_BURMY_1", [2]="SPECIES_ABBR_BURMY_2"}
+RECRUIT_LIST.abbreviations.deerling = {[0]="SPECIES_ABBR_DEERLING_0", [1]="SPECIES_ABBR_DEERLING_1", [2]="SPECIES_ABBR_DEERLING_2", [3]="SPECIES_ABBR_DEERLING_3"}
+RECRUIT_LIST.abbreviations.deoxys = {[0]="SPECIES_ABBR_DEOXYS_0", [1]="SPECIES_ABBR_DEOXYS_1", [2]="SPECIES_ABBR_DEOXYS_2", [3]="SPECIES_ABBR_DEOXYS_3"}
+RECRUIT_LIST.abbreviations.dudunsparce = {[0]="SPECIES_ABBR_DUDUNSPARCE_0", [1]="SPECIES_ABBR_DUDUNSPARCE_1"}
+RECRUIT_LIST.abbreviations.flabebe = {[0]="SPECIES_ABBR_FLABEBE_0", [1]="SPECIES_ABBR_FLABEBE_1", [2]="SPECIES_ABBR_FLABEBE_2", [3]="SPECIES_ABBR_FLABEBE_3", [4]="SPECIES_ABBR_FLABEBE_4"}
+RECRUIT_LIST.abbreviations.floette = {[0]="SPECIES_ABBR_FLOETTE_0", [1]="SPECIES_ABBR_FLOETTE_1", [2]="SPECIES_ABBR_FLOETTE_2", [3]="SPECIES_ABBR_FLOETTE_3", [4]="SPECIES_ABBR_FLOETTE_4", [5]="SPECIES_ABBR_FLOETTE_5"}
+RECRUIT_LIST.abbreviations.florges = {[0]="SPECIES_ABBR_FLORGES_0", [1]="SPECIES_ABBR_FLORGES_1", [2]="SPECIES_ABBR_FLORGES_2", [3]="SPECIES_ABBR_FLORGES_3", [4]="SPECIES_ABBR_FLORGES_4"}
+RECRUIT_LIST.abbreviations.gastrodon = {[0]="SPECIES_ABBR_GASTRODON_0", [1]="SPECIES_ABBR_GASTRODON_1"}
+RECRUIT_LIST.abbreviations.gourgeist = {[0]="SPECIES_ABBR_GOURGEIST_0", [1]="SPECIES_ABBR_GOURGEIST_1", [2]="SPECIES_ABBR_GOURGEIST_2", [3]="SPECIES_ABBR_GOURGEIST_3"}
+RECRUIT_LIST.abbreviations.indeedee = {[0]="SPECIES_ABBR_INDEEDEE_0", [1]="SPECIES_ABBR_INDEEDEE_1"}
+RECRUIT_LIST.abbreviations.lycanroc = {[0]="SPECIES_ABBR_LYCANROC_0", [1]="SPECIES_ABBR_LYCANROC_1", [2]="SPECIES_ABBR_LYCANROC_2"}
+RECRUIT_LIST.abbreviations.maushold = {[0]="SPECIES_ABBR_MAUSHOLD_0", [1]="SPECIES_ABBR_MAUSHOLD_1"}
+RECRUIT_LIST.abbreviations.meowstic = {[0]="SPECIES_ABBR_MEOWSTIC_0", [1]="SPECIES_ABBR_MEOWSTIC_1"}
+RECRUIT_LIST.abbreviations.oricorio = {[0]="SPECIES_ABBR_ORICORIO_0", [1]="SPECIES_ABBR_ORICORIO_1", [2]="SPECIES_ABBR_ORICORIO_2", [3]="SPECIES_ABBR_ORICORIO_3"}
+RECRUIT_LIST.abbreviations.pumpkaboo = {[0]="SPECIES_ABBR_PUMPKABOO_0", [1]="SPECIES_ABBR_PUMPKABOO_1", [2]="SPECIES_ABBR_PUMPKABOO_2", [3]="SPECIES_ABBR_PUMPKABOO_3"}
+RECRUIT_LIST.abbreviations.sawsbuck = {[0]="SPECIES_ABBR_SAWSBUCK_0", [1]="SPECIES_ABBR_SAWSBUCK_1", [2]="SPECIES_ABBR_SAWSBUCK_2", [3]="SPECIES_ABBR_SAWSBUCK_3"}
+RECRUIT_LIST.abbreviations.shellos = {[0]="SPECIES_ABBR_SHELLOS_0", [1]="SPECIES_ABBR_SHELLOS_1"}
+RECRUIT_LIST.abbreviations.squawkabilly = {[0]="SPECIES_ABBR_SQUAWKABILLY_0", [1]="SPECIES_ABBR_SQUAWKABILLY_1", [2]="SPECIES_ABBR_SQUAWKABILLY_2", [3]="SPECIES_ABBR_SQUAWKABILLY_3"}
+RECRUIT_LIST.abbreviations.tauros = {[0]="SPECIES_ABBR_TAUROS_0", [1]="SPECIES_ABBR_TAUROS_1", [2]="SPECIES_ABBR_TAUROS_2", [3]="SPECIES_ABBR_TAUROS_3"}
+RECRUIT_LIST.abbreviations.tatsugiri = {[0]="SPECIES_ABBR_TATSUGIRI_0", [1]="SPECIES_ABBR_TATSUGIRI_1", [2]="SPECIES_ABBR_TATSUGIRI_2"}
+RECRUIT_LIST.abbreviations.toxtricity = {[0]="SPECIES_ABBR_TOXTRICITY_0", [1]="SPECIES_ABBR_TOXTRICITY_1"}
+RECRUIT_LIST.abbreviations.urshifu = {[0]="SPECIES_ABBR_URSHIFU_0", [1]="SPECIES_ABBR_URSHIFU_1"}
+RECRUIT_LIST.abbreviations.wormadam = {[0]="SPECIES_ABBR_WORMADAM_0", [1]="SPECIES_ABBR_WORMADAM_1", [2]="SPECIES_ABBR_WORMADAM_2"}
+---@type table<string, table<integer|"all"|"group"|"redirect_completion", integer|boolean>>
+RECRUIT_LIST.redirects = {}
+RECRUIT_LIST.redirects.alcremie =    {all = 0, group = true}
+RECRUIT_LIST.redirects.darmanitan =  {[1] = 0, [3] = 2, redirect_completion=true}
+RECRUIT_LIST.redirects.furfrou =     {all = 0, group = true}
+RECRUIT_LIST.redirects.magearna =    {[1] = 0, group = true}
+RECRUIT_LIST.redirects.polteageist = {[1] = 0, group = true}
+RECRUIT_LIST.redirects.sinistea =    {[1] = 0, group = true}
+RECRUIT_LIST.redirects.vivillon =    {all = 0, group = true}
+---@type table<string, boolean>
+RECRUIT_LIST.single_species = {}
+RECRUIT_LIST.single_species.aegislash = true
+RECRUIT_LIST.single_species.arceus = true
+RECRUIT_LIST.single_species.castform = true
+RECRUIT_LIST.single_species.cherrim = true
+RECRUIT_LIST.single_species.cramorant = true
+RECRUIT_LIST.single_species.dialga = true
+RECRUIT_LIST.single_species.eiscue = true
+RECRUIT_LIST.single_species.enamorus = true
+RECRUIT_LIST.single_species.eternatus = true
+RECRUIT_LIST.single_species.genesect = true
+RECRUIT_LIST.single_species.giratina = true
+RECRUIT_LIST.single_species.hoopa = true
+RECRUIT_LIST.single_species.keldeo = true
+RECRUIT_LIST.single_species.kyurem = true
+RECRUIT_LIST.single_species.landorus = true
+RECRUIT_LIST.single_species.meloetta = true
+RECRUIT_LIST.single_species.minior = true
+RECRUIT_LIST.single_species.morpeko = true
+RECRUIT_LIST.single_species.necrozma = true
+RECRUIT_LIST.single_species.ogerpon = true
+RECRUIT_LIST.single_species.palafin = true
+RECRUIT_LIST.single_species.palkia = true
+RECRUIT_LIST.single_species.shaymin = true
+RECRUIT_LIST.single_species.sylvally = true
+RECRUIT_LIST.single_species.terapagos = true
+RECRUIT_LIST.single_species.thundurus = true
+RECRUIT_LIST.single_species.tornadus = true
+RECRUIT_LIST.single_species.wishiwashi = true
+RECRUIT_LIST.single_species.zacian = true
+RECRUIT_LIST.single_species.zamazenta = true
+RECRUIT_LIST.single_species.zygarde = true
 
 RECRUIT_LIST.hide =                    0
 RECRUIT_LIST.unrecruitable_not_seen =  1
@@ -27,6 +103,8 @@ RECRUIT_LIST.seen =                    4
 RECRUIT_LIST.extra_seen =              5
 RECRUIT_LIST.obtained =                6
 RECRUIT_LIST.extra_obtained =          7
+RECRUIT_LIST.obtained_partial =        8
+RECRUIT_LIST.extra_obtained_partial =  9
 
 RECRUIT_LIST.FloorNameDropZoneStep = luanet.import_type('PMDC.LevelGen.FloorNameDropZoneStep')
 RECRUIT_LIST.TeamSpawnZoneStep = luanet.import_type('RogueEssence.LevelGen.TeamSpawnZoneStep')
@@ -35,7 +113,7 @@ RECRUIT_LIST.Unlock = RogueEssence.Data.GameProgress.UnlockState
 --- -----------------------------------------------
 --- SV structure
 --- -----------------------------------------------
---- Returns if the game has been completed or not
+--- Returns whether the game has been completed or not
 --- @return boolean #true if guidmaster_summit.GameCompleted is true, false otherwise
 function RECRUIT_LIST.gameCompleted()
     if SV.guildmaster_summit.GameComplete == nil then SV.guildmaster_summit.GameComplete = false end
@@ -344,6 +422,58 @@ end
 --- -----------------------------------------------
 --- Functions
 --- -----------------------------------------------
+
+function RECRUIT_LIST.getMonsterCompletion(species, form)
+    if RECRUIT_LIST.single_species[species] then
+        return _DATA.Save:GetMonsterUnlock(species)
+    end
+    if RECRUIT_LIST.redirects[species] and RECRUIT_LIST.redirects[species].redirect_completion then
+        if RECRUIT_LIST.redirects[species].all then
+            return _DATA.Save:GetMonsterUnlock(species)
+        elseif RECRUIT_LIST.redirects[species][form] then
+            return RECRUIT_LIST.getCompletionRedirect(species, form)
+        end
+    end
+    return _DATA.Save:GetMonsterFormUnlock(species, form)
+end
+
+function RECRUIT_LIST.getCompletionRedirect(species, form)
+    local checked = {}
+    local completion = _DATA.Save:GetMonsterFormUnlock(species, form)
+    local redirect = RECRUIT_LIST.redirects[species]
+    checked[form] = true
+    form = redirect[form]
+    while form and not checked[form] and completion ~= RECRUIT_LIST.Unlock.Completed do
+        local compl = _DATA.Save:GetMonsterFormUnlock(species, form)
+        if completion == RECRUIT_LIST.Unlock.None or compl == RECRUIT_LIST.Unlock.Completed then
+            completion = compl
+        end
+        checked[form] = true
+        form = redirect[form]
+    end
+end
+
+function RECRUIT_LIST.getMonsterFormName(species, form)
+    if RECRUIT_LIST.single_species[species] then return _DATA:GetMonster(species).Name:ToLocal() end
+    if RECRUIT_LIST.redirects[species] and RECRUIT_LIST.redirects[species].group then return _DATA:GetMonster(species).Name:ToLocal() end
+    if RECRUIT_LIST.redirects[species] and RECRUIT_LIST.redirects[species].all then form = RECRUIT_LIST.redirects[species].all end
+    if RECRUIT_LIST.redirects[species] and RECRUIT_LIST.redirects[species][form] then form = RECRUIT_LIST.redirects[species][form] end
+
+    if RECRUIT_LIST.abbreviations[species] and RECRUIT_LIST.abbreviations[species][form] then
+        return STRINGS:FormatKey(RECRUIT_LIST.abbreviations[species][form])
+    else
+        local name = _DATA:GetMonster(species).Forms[form].FormName:ToLocal()
+        for p, r in pairs(RECRUIT_LIST.variants) do
+            local pattern = STRINGS:FormatKey(p)
+            if string.find(name, pattern, 1, true) then
+                name = string.gsub(name, pattern, STRINGS:FormatKey(r), 1)
+                break
+            end
+        end
+        return name
+    end
+end
+
 --- returns the current map as a table of properties ``{string zone, int segment, int floor}``
 --- @return {zone:string,segment:integer,floor:integer} the current locatioon
 function RECRUIT_LIST.getCurrentMap()
@@ -452,7 +582,9 @@ end
 --- @return fullDungeonSpawn_entry[] #the list of spawn entries in the currently explored part of the dungeon
 function RECRUIT_LIST.compileFullDungeonList(zone, segment)
     --- @type table<string,table<integer,fullDungeonSpawn_entry>>
-    local species = {}  -- used to compact multiple entries that contain the same species and form
+    local species = {} -- used to compact multiple entries that contain the same species and form
+    --- @type table<string, MonsterID>
+    local groups = {} -- used to compact multiple entries that use the same species name
 
     RECRUIT_LIST.generateDungeonListSV(zone, segment)
     local segmentData = _DATA:GetZone(zone).Segments[segment]
@@ -484,6 +616,13 @@ function RECRUIT_LIST.compileFullDungeonList(zone, segment)
                     mode = RECRUIT_LIST.not_seen, -- defaults to "???". this will be calculated later
                     enabled = false               -- false by default. this will be calculated later
                 }
+                if RECRUIT_LIST.redirects[spawn.BaseForm.Species] and RECRUIT_LIST.redirects[spawn.BaseForm.Species].group then
+                    if groups[spawn.BaseForm.Species] then
+                        entry.monster = groups[spawn.BaseForm.Species]
+                    else
+                        groups[spawn.BaseForm.Species] = entry.monster
+                    end
+                end
                 entry.min = entry.elements[1].range.min
                 entry.max = entry.elements[1].range.max
                 -- check if the mon is recruitable
@@ -522,6 +661,13 @@ function RECRUIT_LIST.compileFullDungeonList(zone, segment)
                         mode = RECRUIT_LIST.not_seen, -- defaults to "???". this will be calculated later
                         enabled = false               -- false by default. this will be calculated later
                     }
+                    if RECRUIT_LIST.redirects[spawn.BaseForm.Species] and RECRUIT_LIST.redirects[spawn.BaseForm.Species].group then
+                        if groups[spawn.BaseForm.Species] then
+                            entry.monster = groups[spawn.BaseForm.Species]
+                        else
+                            groups[spawn.BaseForm.Species] = entry.monster
+                        end
+                    end
                     entry.min = entry.elements[1].range.min
                     entry.max = entry.elements[1].range.max
                     -- check if the mon is recruitable
@@ -596,8 +742,7 @@ function RECRUIT_LIST.compileFullDungeonList(zone, segment)
     end)
 
     for _, elem in pairs(list) do
-        local unlockState = _DATA.Save:GetMonsterFormUnlock(elem.monster)
-
+        local unlockState = RECRUIT_LIST.getMonsterCompletion(elem.monster.Species, elem.monster.Form)
         if elem.mode ~= RECRUIT_LIST.unrecruitable then
             -- check if the form has been seen or obtained
             if unlockState == RECRUIT_LIST.Unlock.Discovered then
@@ -606,6 +751,23 @@ function RECRUIT_LIST.compileFullDungeonList(zone, segment)
             elseif unlockState == RECRUIT_LIST.Unlock.Completed then
                 elem.mode = RECRUIT_LIST.obtained
                 elem.enabled = true
+            end
+            if RECRUIT_LIST.redirects[elem.monster.Species] and RECRUIT_LIST.redirects[elem.monster.Species].group then
+                elem.mode = -1
+                for _, entry in ipairs(elem.elements) do
+                    local entryState = RECRUIT_LIST.getMonsterCompletion(entry.data.BaseForm.Species, entry.data.BaseForm.Form)
+                    if elem.mode == RECRUIT_LIST.not_seen then
+                        if entryState == RECRUIT_LIST.Unlock.Discovered then elem.mode = RECRUIT_LIST.seen
+                        elseif entryState == RECRUIT_LIST.Unlock.Completed then
+                            elem.mode = RECRUIT_LIST.obtained_partial
+                        end
+                    elseif elem.mode == RECRUIT_LIST.seen and entryState == RECRUIT_LIST.Unlock.Completed then
+                        elem.mode = RECRUIT_LIST.obtained_partial
+                    elseif elem.mode == RECRUIT_LIST.obtained and (entryState == RECRUIT_LIST.Unlock.None or entryState == RECRUIT_LIST.Unlock.Discovered) then
+                        elem.mode = RECRUIT_LIST.obtained_partial
+                    end
+                    if elem.mode == RECRUIT_LIST.obtained_partial then break end
+                end
             end
         else
             if unlockState == RECRUIT_LIST.Unlock.None then
@@ -625,10 +787,11 @@ function RECRUIT_LIST.compileFloorList()
     if _DATA.Save.NoRecruiting then return {} end
     if RogueEssence.GameManager.Instance.CurrentScene ~= RogueEssence.Dungeon.DungeonScene.Instance then return {} end
 
-    --- @type {keys:MonsterID[],entries:table<string,table<integer,{chars:{data:any}|nil,spawn:{data:any}[]|nil,mode:integer,enabled:boolean}>>}
+    --- @type {groups:table<string,MonsterID>, keys:MonsterID[],entries:table<string,table<integer,{chars:{data:any}|nil,spawn:{data:any}[]|nil,mode:integer,enabled:boolean}>>}
     local list = {
         keys = {},
-        entries = {}
+        entries = {},
+        groups = {}
     }
 
     local map = _ZONE.CurrentMap
@@ -642,7 +805,7 @@ function RECRUIT_LIST.compileFloorList()
 
             if spawn:CanSpawn() then
                 local member = spawn.BaseForm
-                local unlockState = _DATA.Save:GetMonsterFormUnlock(member)
+                local unlockState = RECRUIT_LIST.getMonsterCompletion(member.Species, member.Form)
                 local mode = RECRUIT_LIST.not_seen -- default is to "???" respawning mons if unknown
                 local enabled = false              -- false by default
 
@@ -674,6 +837,10 @@ function RECRUIT_LIST.compileFloorList()
                 -- add the member and its display mode to the list
                 if mode > RECRUIT_LIST.hide then
                     list.entries[member.Species] = list.entries[member.Species] or {}
+                    if RECRUIT_LIST.redirects[member.Species] and RECRUIT_LIST.redirects[member.Species].group then
+                        if list.groups[member.Species] then member = list.groups[member.Species]
+                        else list.groups[member.Species] = member end
+                    end
                     if not list.entries[member.Species][member.Form] then
                         table.insert(list.keys, member)
                         list.entries[member.Species][member.Form] = {
@@ -682,7 +849,18 @@ function RECRUIT_LIST.compileFloorList()
                             enabled = enabled
                         }
                     else
-                        table.insert(list.entries[member.Species][member.Form].spawn, {data = spawn})
+                        local entry = list.entries[member.Species][member.Form]
+                        table.insert(entry.spawn, { data = spawn })
+                        if entry.mode ~= mode then
+                            if entry.mode == RECRUIT_LIST.not_seen then
+                                if mode == RECRUIT_LIST.seen then entry.mode = RECRUIT_LIST.seen
+                                elseif mode == RECRUIT_LIST.obtained then entry.mode = RECRUIT_LIST.obtained_partial end
+                            elseif entry.mode == RECRUIT_LIST.seen and mode == RECRUIT_LIST.obtained then
+                                entry.mode = RECRUIT_LIST.obtained_partial
+                            elseif entry.mode == RECRUIT_LIST.obtained and (mode == RECRUIT_LIST.not_seen or mode == RECRUIT_LIST.seen) then
+                                entry.mode = RECRUIT_LIST.obtained_partial
+                            end
+                        end
                     end
                 end
             end
@@ -704,7 +882,7 @@ function RECRUIT_LIST.compileFloorList()
         for j = 0, team.Count-1, 1 do
             local char = team[j]
             local member = char.BaseForm
-            local unlockState = _DATA.Save:GetMonsterFormUnlock(member)
+            local unlockState = RECRUIT_LIST.getMonsterCompletion(member.Species, member.Form)
             local mode = RECRUIT_LIST.hide -- default is to not show non-respawning mons if unknown
 
             -- check if the mon has been seen or obtained
@@ -712,12 +890,19 @@ function RECRUIT_LIST.compileFloorList()
                 mode = RECRUIT_LIST.extra_seen
             elseif unlockState == RECRUIT_LIST.Unlock.Completed then
                 mode = RECRUIT_LIST.extra_obtained
+            elseif RECRUIT_LIST.redirects[member.Species] and RECRUIT_LIST.redirects[member.Species].group and
+                    _DATA.Save:GetMonsterUnlock(member.Species) ~= RECRUIT_LIST.Unlock.None then
+                mode = RECRUIT_LIST.extra_seen
             end
             -- do not show in recruit list if cannot recruit, no matter the list or mode
             if char.Unrecruitable then mode = RECRUIT_LIST.hide end
 
             -- add the member and its display mode to the list
             if mode > RECRUIT_LIST.hide then
+                if RECRUIT_LIST.redirects[member.Species] and RECRUIT_LIST.redirects[member.Species].group then
+                    if list.groups[member.Species] then member = list.groups[member.Species]
+                    else list.groups[member.Species] = member end
+                end
                 list.entries[member.Species] = list.entries[member.Species] or {}
                 if not list.entries[member.Species][member.Form] then
                     table.insert(list.keys, member)
@@ -727,7 +912,15 @@ function RECRUIT_LIST.compileFloorList()
                         enabled = true
                     }
                 elseif list.entries[member.Species][member.Form].chars then
-                    table.insert(list.entries[member.Species][member.Form].chars, {data = char})
+                    local entry = list.entries[member.Species][member.Form]
+                    table.insert(entry.chars, { data = char })
+                    if entry.mode ~= mode then
+                        if entry.mode == RECRUIT_LIST.extra_seen and mode == RECRUIT_LIST.extra_obtained then
+                            entry.mode = RECRUIT_LIST.extra_obtained_partial
+                        elseif entry.mode == RECRUIT_LIST.extra_obtained and mode == RECRUIT_LIST.extra_seen then
+                            entry.mode = RECRUIT_LIST.extra_obtained_partial
+                        end
+                    end
                 end
             end
         end

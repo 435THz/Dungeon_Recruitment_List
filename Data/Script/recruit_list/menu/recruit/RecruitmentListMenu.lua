@@ -16,6 +16,8 @@ RecruitmentListMenu.static.patternList = {
     {pre = '\u{E111}', txt = '{t}', suf = '',         spa = 10, clr = '#00FFFF', alw = false},
     {pre = '',         txt = '{t}', suf = '\u{E10C}', spa =  0, clr = '#FFFF00', alw = false},
     {pre = '\u{E111}', txt = '{t}', suf = '\u{E10C}', spa = 10, clr = '#FFFFA0', alw = false},
+    {pre = '',         txt = '{t}', suf = '\u{E10D}', spa =  0, clr = '#ffc060', alw = false},
+    {pre = '\u{E111}', txt = '{t}', suf = '\u{E10D}', spa = 10, clr = '#FFe0a0', alw = false},
 }
 RecruitmentListMenu.static.colorError = '#FF0000'
 
@@ -153,7 +155,7 @@ end
 ---@return integer
 function RecruitmentListMenu:formatName(monster, mode)
     local use_icon = RECRUIT_LIST.iconMode()
-    local name = _DATA:GetMonster(monster.Species).Forms[monster.Form].FormName:ToLocal()
+    local name = RECRUIT_LIST.getMonsterFormName(monster.Species, monster.Form)
 
     local pattern = self.static.patternList[4]
     local color = self.static.colorError

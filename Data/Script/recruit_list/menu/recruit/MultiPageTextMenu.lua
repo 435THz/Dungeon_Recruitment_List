@@ -103,14 +103,18 @@ MultiPageTextMenu.static[2].content = {
                 "\n" ..
                 "???(White): You have never met this Pokémon.\n" ..
                 "White: You have never recruited this Pokémon.\n" ..
-                "[color=#FFFF00]Yellow[color]\u{E10C}: You have recruited this Pokémon.\n",
+                "[color=#FFFF00]Yellow[color]\u{E10C}: You have recruited this Pokémon.\n" ..
+                "[color=#FFC060]Orange[color]\u{E10D}: You have recruited this Pokémon, but " ..
+                "not all of its forms that appear here.\n",
         -- no icon mode
         "Colors used for Pokémon that keep appearing\n" ..
                 "as long as you stay in this Dungeon:\n" ..
                 "\n" ..
                 "???(White): You have never met this Pokémon.\n" ..
                 "White: You have never recruited this Pokémon.\n" ..
-                "[color=#FFFF00]Yellow[color]: You have recruited this Pokémon.\n"
+                "[color=#FFFF00]Yellow[color]: You have recruited this Pokémon.\n" ..
+                "[color=#FFC060]Orange[color]: You have recruited this Pokémon, but " ..
+                "not all of its forms that appear here.\n"
     },
     -- page 2
     {
@@ -120,14 +124,20 @@ MultiPageTextMenu.static[2].content = {
                 "\n\n" ..
                 "\u{E111}[color=#00FFFF]Cyan[color]: You have never recruited this Pokémon.\n" ..
                 "\u{E111}[color=#FFFFA0]Faded Yellow[color]\u{E10C}: You have recruited this " ..
-                "Pokémon.\n",
+                "Pokémon.\n" ..
+                "\u{E111}[color=#FFE0A0]Faded Orange[color]\u{E10C}: You have recruited this " ..
+                "Pokémon, but not all of its forms that are " ..
+                "currently here.\n",
 
         -- no icon mode
         "Colors used for Pokémon that appeared in " ..
                 "special circumstances (only shown in floor):\n" ..
                 "\n\n" ..
                 "[color=#00FFFF]Cyan[color]: You have never recruited this Pokémon.\n" ..
-                "[color=#FFFFA0]Faded Yellow[color]: You have recruited this Pokémon.\n"
+                "[color=#FFFFA0]Faded Yellow[color]: You have recruited this Pokémon.\n" ..
+                "[color=#FFE0A0]Faded Orange[color]: You have recruited this Pokémon, " ..
+                "but not all of its forms that are currently " ..
+                "here.\n",
     }
 }
 MultiPageTextMenu.static[2].content_filter = function(_) return true end

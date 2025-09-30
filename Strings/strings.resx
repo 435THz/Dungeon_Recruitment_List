@@ -1,0 +1,476 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="VARIANT_KEY_ALOLA" xml:space="preserve">
+    <value>Alolan</value>
+    <comment></comment>  
+  </data>
+  <data name="VARIANT_KEY_GALAR" xml:space="preserve">
+    <value>Galarian</value>
+    <comment></comment>
+  </data>
+  <data name="VARIANT_KEY_HISUI" xml:space="preserve">
+    <value>Hisuian</value>
+    <comment></comment>
+  </data>
+  <data name="VARIANT_KEY_PALDEA" xml:space="preserve">
+    <value>Paldean</value>
+    <comment></comment>
+  </data>
+  <data name="VARIANT_ABBR_ALOLA" xml:space="preserve">
+    <value>A.</value>
+    <comment></comment>
+  </data>
+  <data name="VARIANT_ABBR_GALAR" xml:space="preserve">
+    <value>G.</value>
+    <comment></comment>
+  </data>
+  <data name="VARIANT_ABBR_HISUI" xml:space="preserve">
+    <value>H.</value>
+    <comment></comment>
+  </data>
+  <data name="VARIANT_ABBR_PALDEA" xml:space="preserve">
+    <value>P.</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_BASCULEGION_0" xml:space="preserve">
+    <value>Basculegion\u2642</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_BASCULEGION_1" xml:space="preserve">
+    <value>Basculegion\u2640</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_BASCULIN_0" xml:space="preserve">
+    <value>Red Basculin</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_BASCULIN_1" xml:space="preserve">
+    <value>Blue Basculin</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_BASCULIN_2" xml:space="preserve">
+    <value>White Basculin</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_BURMY_0" xml:space="preserve">
+    <value>Burmy-P</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_BURMY_1" xml:space="preserve">
+    <value>Burmy-S</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_BURMY_2" xml:space="preserve">
+    <value>Burmy-T</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_DEERLING_0" xml:space="preserve">
+    <value>Deerling-Sp</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_DEERLING_1" xml:space="preserve">
+    <value>Deerling-Su</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_DEERLING_2" xml:space="preserve">
+    <value>Deerling-A</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_DEERLING_3" xml:space="preserve">
+    <value>Deerling-W</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_DEOXYS_0" xml:space="preserve">
+    <value>Deoxys</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_DEOXYS_1" xml:space="preserve">
+    <value>Deoxys-A</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_DEOXYS_2" xml:space="preserve">
+    <value>Deoxys-D</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_DEOXYS_3" xml:space="preserve">
+    <value>Deoxys-S</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_DUDUNSPARCE_0" xml:space="preserve">
+    <value>Dudunsparce</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_DUDUNSPARCE_1" xml:space="preserve">
+    <value>Dudunsparce-3</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_FLABEBE_0" xml:space="preserve">
+    <value>Flabébé-R</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_FLABEBE_1" xml:space="preserve">
+    <value>Flabébé-Y</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_FLABEBE_2" xml:space="preserve">
+    <value>Flabébé-O</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_FLABEBE_3" xml:space="preserve">
+    <value>Flabébé-B</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_FLABEBE_4" xml:space="preserve">
+    <value>Flabébé-W</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_FLOETTE_0" xml:space="preserve">
+    <value>Floette-R</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_FLOETTE_1" xml:space="preserve">
+    <value>Floette-Y</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_FLOETTE_2" xml:space="preserve">
+    <value>Floette-O</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_FLOETTE_3" xml:space="preserve">
+    <value>Floette-B</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_FLOETTE_4" xml:space="preserve">
+    <value>Floette-W</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_FLOETTE_5" xml:space="preserve">
+    <value>Floette-E</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_FLORGES_0" xml:space="preserve">
+    <value>Florges-R</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_FLORGES_1" xml:space="preserve">
+    <value>Florges-Y</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_FLORGES_2" xml:space="preserve">
+    <value>Florges-O</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_FLORGES_3" xml:space="preserve">
+    <value>Florges-B</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_FLORGES_4" xml:space="preserve">
+    <value>Florges-W</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_GASTRODON_0" xml:space="preserve">
+    <value>Pink Gastrodon</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_GASTRODON_1" xml:space="preserve">
+    <value>Blue Gastrodon</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_GOURGEIST_0" xml:space="preserve">
+    <value>Gourgeist-M</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_GOURGEIST_1" xml:space="preserve">
+    <value>Gourgeist-S</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_GOURGEIST_2" xml:space="preserve">
+    <value>Gourgeist-L</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_GOURGEIST_3" xml:space="preserve">
+    <value>Gourgeist-XL</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_INDEEDEE_0" xml:space="preserve">
+    <value>Indeedee\u2642</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_INDEEDEE_1" xml:space="preserve">
+    <value>Indeedee\u2640</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_LYCANROC_0" xml:space="preserve">
+    <value>Lycanroc-Md</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_LYCANROC_1" xml:space="preserve">
+    <value>Lycanroc-Mn</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_LYCANROC_2" xml:space="preserve">
+    <value>Lycanroc-D</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_MAUSHOLD_0" xml:space="preserve">
+    <value>Maushold</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_MAUSHOLD_1" xml:space="preserve">
+    <value>Maushold-3</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_MEOWSTIC_0" xml:space="preserve">
+    <value>Meowstic\u2642</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_MEOWSTIC_1" xml:space="preserve">
+    <value>Meowstic\u2640</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_ORICORIO_0" xml:space="preserve">
+    <value>Oricorio-F</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_ORICORIO_1" xml:space="preserve">
+    <value>Oricorio-S</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_ORICORIO_2" xml:space="preserve">
+    <value>Oricorio-P</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_ORICORIO_3" xml:space="preserve">
+    <value>Oricorio-G</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_PUMPKABOO_0" xml:space="preserve">
+    <value>Pumpkaboo-M</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_PUMPKABOO_1" xml:space="preserve">
+    <value>Pumpkaboo-S</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_PUMPKABOO_2" xml:space="preserve">
+    <value>Pumpkaboo-L</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_PUMPKABOO_3" xml:space="preserve">
+    <value>Pumpkaboo-XL</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_SAWSBUCK_0" xml:space="preserve">
+    <value>Sawsbuck-Sp</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_SAWSBUCK_1" xml:space="preserve">
+    <value>Sawsbuck-Su</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_SAWSBUCK_2" xml:space="preserve">
+    <value>Sawsbuck-A</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_SAWSBUCK_3" xml:space="preserve">
+    <value>Sawsbuck-W</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_SHELLOS_0" xml:space="preserve">
+    <value>Pink Shellos</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_SHELLOS_1" xml:space="preserve">
+    <value>Blue Shellos</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_SQUAWKABILLY_0" xml:space="preserve">
+    <value>Squawkabilly-G</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_SQUAWKABILLY_1" xml:space="preserve">
+    <value>Squawkabilly-B</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_SQUAWKABILLY_2" xml:space="preserve">
+    <value>Squawkabilly-Y</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_SQUAWKABILLY_3" xml:space="preserve">
+    <value>Squawkabilly-W</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_TAUROS_0" xml:space="preserve">
+    <value>Tauros</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_TAUROS_1" xml:space="preserve">
+    <value>P. Tauros</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_TAUROS_2" xml:space="preserve">
+    <value>P. Tauros-F</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_TAUROS_3" xml:space="preserve">
+    <value>P. Tauros-W</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_TATSUGIRI_0" xml:space="preserve">
+    <value>Tatsugiri-C</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_TATSUGIRI_1" xml:space="preserve">
+    <value>Tatsugiri-S</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_TATSUGIRI_2" xml:space="preserve">
+    <value>Tatsugiri-D</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_TOXTRICITY_0" xml:space="preserve">
+    <value>Toxtricity-A</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_TOXTRICITY_1" xml:space="preserve">
+    <value>Toxtricity-L</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_URSHIFU_0" xml:space="preserve">
+    <value>Urshifu-S</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_URSHIFU_1" xml:space="preserve">
+    <value>Urshifu-R</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_WORMADAM_0" xml:space="preserve">
+    <value>Wormadam-P</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_WORMADAM_1" xml:space="preserve">
+    <value>Wormadam-S</value>
+    <comment></comment>
+  </data>
+  <data name="SPECIES_ABBR_WORMADAM_2" xml:space="preserve">
+    <value>Wormadam-T</value>
+    <comment></comment>
+  </data>
+</root>

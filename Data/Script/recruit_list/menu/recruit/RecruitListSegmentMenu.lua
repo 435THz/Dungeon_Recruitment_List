@@ -46,8 +46,7 @@ function RecruitListSegmentMenu:loadSegments(segments)
             id = segment.id,
             title = title,
             option = text,
-            enabled = enabled,
-            length = floors
+            enabled = enabled
         }
         table.insert(list, entry)
     end
@@ -66,9 +65,12 @@ end
 function RecruitListSegmentMenu:updateSummary()
     local selected = self.segments[self.menu.CurrentChoice+1]
     local segData = RECRUIT_LIST.getSegmentData(self.zone, selected.id)
-    local completed = segData.completed
     local floors = "??"
-    if completed then floors = tostring(segData.totalFloors) end
+    local completed = false
+    if segData then
+        completed = segData.completed
+        if completed then floors = tostring(segData.totalFloors) end
+    end
     self.parent.summary:SetSegment(selected.option, floors)
 end
 
