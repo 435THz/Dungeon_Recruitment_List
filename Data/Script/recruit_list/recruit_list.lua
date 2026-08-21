@@ -1,6 +1,3 @@
-require 'origin.common'
-require "recruit_list.menu.recruit.RecruitListMainMenu"
-
 RECRUIT_LIST = {}
 --[[
     recruit_list.lua
@@ -98,13 +95,14 @@ RECRUIT_LIST.single_species.zygarde = true
 RECRUIT_LIST.hide =                    0
 RECRUIT_LIST.unrecruitable_not_seen =  1
 RECRUIT_LIST.not_seen =                2
-RECRUIT_LIST.unrecruitable =           3
-RECRUIT_LIST.seen =                    4
-RECRUIT_LIST.extra_seen =              5
-RECRUIT_LIST.obtained =                6
-RECRUIT_LIST.extra_obtained =          7
-RECRUIT_LIST.obtained_partial =        8
-RECRUIT_LIST.extra_obtained_partial =  9
+RECRUIT_LIST.extra_not_seen =          3
+RECRUIT_LIST.unrecruitable =           4
+RECRUIT_LIST.seen =                    5
+RECRUIT_LIST.extra_seen =              6
+RECRUIT_LIST.obtained =                7
+RECRUIT_LIST.extra_obtained =          8
+RECRUIT_LIST.obtained_partial =        9
+RECRUIT_LIST.extra_obtained_partial =  10
 
 RECRUIT_LIST.FloorNameDropZoneStep = luanet.import_type('PMDC.LevelGen.FloorNameDropZoneStep')
 RECRUIT_LIST.TeamSpawnZoneStep = luanet.import_type('RogueEssence.LevelGen.TeamSpawnZoneStep')
@@ -112,6 +110,10 @@ RECRUIT_LIST.FeatureUnrecruitable = luanet.import_type('PMDC.LevelGen.MobSpawnUn
 RECRUIT_LIST.Unlock = RogueEssence.Data.GameProgress.UnlockState
 RECRUIT_LIST.ZoneIndex = _DATA.DataIndices[RogueEssence.Data.DataManager.DataType.Zone]
 RECRUIT_LIST.MonsterIndex = _DATA.DataIndices[RogueEssence.Data.DataManager.DataType.Monster]
+
+require 'origin.common'
+require "recruit_list.menu.recruit.RecruitListMainMenu"
+
 --- -----------------------------------------------
 --- SV structure
 --- -----------------------------------------------
@@ -897,7 +899,7 @@ function RECRUIT_LIST.compileFloorList()
             local char = team[j]
             local member = char.BaseForm
             local unlockState = RECRUIT_LIST.getMonsterCompletion(member.Species, member.Form)
-            local mode = RECRUIT_LIST.hide -- default is to not show non-respawning mons if unknown
+            local mode = RECRUIT_LIST.extra_not_seen -- default is "???"
 
             -- check if the mon has been seen or obtained
             if unlockState == RECRUIT_LIST.Unlock.Discovered then

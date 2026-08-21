@@ -8,17 +8,28 @@ RecruitmentListMenu.static = {}
 RecruitmentListMenu.static.listMode = 0
 RecruitmentListMenu.static.scannerMode = 1
 -- {prefix, text, suffix, spacing, color, alwaysShowPrefixAndSuffix}
-RecruitmentListMenu.static.patternList = {
-    {pre = '\u{E10B}', txt = '???', suf = '',         spa = 10, clr = '#989898', alw = false},
-    {pre = '',         txt = '???', suf = '',         spa =  0, clr = '#FFFFFF', alw = false},
-    {pre = '\u{E10B}', txt = '{t}', suf = '',         spa = 10, clr = '#989898', alw = false},
-    {pre = '',         txt = '{t}', suf = '',         spa =  0, clr = '#FFFFFF', alw = false},
-    {pre = '\u{E111}', txt = '{t}', suf = '',         spa = 10, clr = '#00FFFF', alw = false},
-    {pre = '',         txt = '{t}', suf = '\u{E10C}', spa =  0, clr = '#FFFF00', alw = false},
-    {pre = '\u{E111}', txt = '{t}', suf = '\u{E10C}', spa = 10, clr = '#FFFFA0', alw = false},
-    {pre = '',         txt = '{t}', suf = '\u{E10D}', spa =  0, clr = '#ffc060', alw = false},
-    {pre = '\u{E111}', txt = '{t}', suf = '\u{E10D}', spa = 10, clr = '#FFe0a0', alw = false},
-}
+RecruitmentListMenu.static.patternList = {}
+
+RecruitmentListMenu.static.patternList[RECRUIT_LIST.unrecruitable_not_seen] = {pre = '\u{E10B}', txt = '???', suf = '',         spa = 10, clr = '#989898', alw = false}
+RecruitmentListMenu.static.patternList[RECRUIT_LIST.not_seen] =               {pre = '',         txt = '???', suf = '',         spa =  0, clr = '#FFFFFF', alw = false}
+RecruitmentListMenu.static.patternList[RECRUIT_LIST.extra_not_seen] =         {pre = '\u{E111}', txt = '???', suf = '',         spa =  0, clr = '#00FFFF', alw = false}
+RecruitmentListMenu.static.patternList[RECRUIT_LIST.unrecruitable] =          {pre = '\u{E10B}', txt = '{t}', suf = '',         spa = 10, clr = '#989898', alw = false}
+RecruitmentListMenu.static.patternList[RECRUIT_LIST.seen] =                   {pre = '',         txt = '{t}', suf = '',         spa =  0, clr = '#FFFFFF', alw = false}
+RecruitmentListMenu.static.patternList[RECRUIT_LIST.extra_seen] =             {pre = '\u{E111}', txt = '{t}', suf = '',         spa = 10, clr = '#00FFFF', alw = false}
+RecruitmentListMenu.static.patternList[RECRUIT_LIST.obtained] =               {pre = '',         txt = '{t}', suf = '\u{E10C}', spa =  0, clr = '#FFFF00', alw = false}
+RecruitmentListMenu.static.patternList[RECRUIT_LIST.extra_obtained] =         {pre = '\u{E111}', txt = '{t}', suf = '\u{E10C}', spa = 10, clr = '#FFFFA0', alw = false}
+RecruitmentListMenu.static.patternList[RECRUIT_LIST.obtained_partial] =       {pre = '',         txt = '{t}', suf = '\u{E10D}', spa =  0, clr = '#ffc060', alw = false}
+RecruitmentListMenu.static.patternList[RECRUIT_LIST.extra_obtained_partial] = {pre = '\u{E111}', txt = '{t}', suf = '\u{E10D}', spa = 10, clr = '#FFe0a0', alw = false}
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
 RecruitmentListMenu.static.colorError = '#FF0000'
 
 ---@param title string
